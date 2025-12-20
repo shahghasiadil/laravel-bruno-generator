@@ -1,7 +1,6 @@
 # Laravel Bruno Generator
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/shahghasiadil/laravel-bruno-generator.svg?style=flat-square)](https://packagist.org/packages/shahghasiadil/laravel-bruno-generator)
-[![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/shahghasiadil/laravel-bruno-generator/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/shahghasiadil/laravel-bruno-generator/actions?query=workflow%3Arun-tests+branch%3Amain)
 [![Total Downloads](https://img.shields.io/packagist/dt/shahghasiadil/laravel-bruno-generator.svg?style=flat-square)](https://packagist.org/packages/shahghasiadil/laravel-bruno-generator)
 
 **Automatically generate [Bruno](https://www.usebruno.com/) API collections from your Laravel routes.**
