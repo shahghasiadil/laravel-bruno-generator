@@ -1,7 +1,6 @@
 {
     "name": "shahghasiadil/laravel-bruno-generator",
     "description": "Generate Bruno API collections from Laravel routes with automatic request body inference and environment support",
-    "version": "dev-main",
     "keywords": [
         "laravel",
         "bruno",
