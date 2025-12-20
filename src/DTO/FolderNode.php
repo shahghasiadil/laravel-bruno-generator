@@ -9,8 +9,8 @@ use Illuminate\Support\Collection;
 final readonly class FolderNode
 {
     /**
-     * @param Collection<int, BrunoRequest> $requests
-     * @param Collection<int, FolderNode> $subfolders
+     * @param  Collection<int, BrunoRequest>  $requests
+     * @param  Collection<int, FolderNode>  $subfolders
      */
     public function __construct(
         public string $name,

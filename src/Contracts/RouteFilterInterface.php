@@ -13,7 +13,7 @@ interface RouteFilterInterface
     /**
      * Filter routes based on criteria.
      *
-     * @param Collection<int, RouteInfo> $routes
+     * @param  Collection<int, RouteInfo>  $routes
      * @return Collection<int, RouteInfo>
      */
     public function filter(Collection $routes, FilterCriteria $criteria): Collection;

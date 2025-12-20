@@ -20,7 +20,7 @@ final class FileWriterService implements FileWriterInterface
     /**
      * Write files atomically.
      *
-     * @param Collection<int, array{path: FilePath, content: FileContent}> $files
+     * @param  Collection<int, array{path: FilePath, content: FileContent}>  $files
      */
     public function write(Collection $files, bool $force): void
     {
@@ -75,7 +75,7 @@ final class FileWriterService implements FileWriterInterface
             $files = $this->filesystem->files($path);
             $directories = $this->filesystem->directories($path);
 
-            if ((!empty($files) || !empty($directories)) && !$force) {
+            if ((! empty($files) || ! empty($directories)) && ! $force) {
                 throw FileWriteException::failedToWrite(
                     $path,
                     'Directory is not empty. Use --force to overwrite.',
@@ -85,7 +85,7 @@ final class FileWriterService implements FileWriterInterface
 
         // Check if parent directory is writable
         $parentDir = dirname($path);
-        if ($this->filesystem->exists($parentDir) && !$this->filesystem->isWritable($parentDir)) {
+        if ($this->filesystem->exists($parentDir) && ! $this->filesystem->isWritable($parentDir)) {
             throw FileWriteException::permissionDenied($parentDir);
         }
     }
@@ -122,11 +122,11 @@ final class FileWriterService implements FileWriterInterface
      */
     private function createBackup(string $path): string
     {
-        if (!$this->filesystem->exists($path)) {
+        if (! $this->filesystem->exists($path)) {
             return '';
         }
 
-        $backupPath = $path . '.backup.' . time();
+        $backupPath = $path.'.backup.'.time();
 
         try {
             $this->filesystem->copyDirectory($path, $backupPath);
@@ -162,14 +162,14 @@ final class FileWriterService implements FileWriterInterface
     {
         // Ensure directory exists
         $directory = $path->dirname();
-        if (!$this->filesystem->exists($directory)) {
-            if (!$this->filesystem->makeDirectory($directory, 0755, true)) {
+        if (! $this->filesystem->exists($directory)) {
+            if (! $this->filesystem->makeDirectory($directory, 0755, true)) {
                 throw FileWriteException::failedToCreateDirectory($directory);
             }
         }
 
         // Write to temporary file first
-        $tempPath = $path->absolutePath . '.tmp';
+        $tempPath = $path->absolutePath.'.tmp';
 
         try {
             if ($this->filesystem->put($tempPath, $content->content) === false) {
@@ -177,7 +177,7 @@ final class FileWriterService implements FileWriterInterface
             }
 
             // Atomic rename
-            if (!rename($tempPath, $path->absolutePath)) {
+            if (! rename($tempPath, $path->absolutePath)) {
                 throw FileWriteException::atomicWriteFailed($path->absolutePath);
             }
         } catch (\Throwable $e) {

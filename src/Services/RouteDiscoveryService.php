@@ -120,7 +120,7 @@ final class RouteDiscoveryService implements RouteDiscoveryInterface
         // Match {param} and {param?} patterns
         preg_match_all('/\{([^}]+)\}/', $uri, $matches);
 
-        if (!empty($matches[1])) {
+        if (! empty($matches[1])) {
             foreach ($matches[1] as $param) {
                 // Remove optional marker (?)
                 $cleanParam = str_replace('?', '', $param);

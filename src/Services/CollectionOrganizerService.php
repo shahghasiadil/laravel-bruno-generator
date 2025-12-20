@@ -17,7 +17,7 @@ use ShahGhasiAdil\LaravelBrunoGenerator\Enums\GroupStrategy;
 final class CollectionOrganizerService implements CollectionOrganizerInterface
 {
     /**
-     * @param array<string, mixed> $config
+     * @param  array<string, mixed>  $config
      */
     public function __construct(
         private readonly array $config,
@@ -26,7 +26,7 @@ final class CollectionOrganizerService implements CollectionOrganizerInterface
     /**
      * Organize requests into hierarchical structure.
      *
-     * @param Collection<int, BrunoRequest> $requests
+     * @param  Collection<int, BrunoRequest>  $requests
      */
     public function organize(Collection $requests, GroupStrategy $strategy): CollectionStructure
     {
@@ -71,7 +71,7 @@ final class CollectionOrganizerService implements CollectionOrganizerInterface
     /**
      * Sort requests based on configuration.
      *
-     * @param Collection<int, BrunoRequest> $requests
+     * @param  Collection<int, BrunoRequest>  $requests
      * @return Collection<int, BrunoRequest>
      */
     private function sortRequests(Collection $requests): Collection
@@ -92,7 +92,7 @@ final class CollectionOrganizerService implements CollectionOrganizerInterface
     /**
      * Reassign sequence numbers after sorting.
      *
-     * @param Collection<int, BrunoRequest> $requests
+     * @param  Collection<int, BrunoRequest>  $requests
      * @return Collection<int, BrunoRequest>
      */
     private function reassignSequences(Collection $requests): Collection
@@ -128,7 +128,7 @@ final class CollectionOrganizerService implements CollectionOrganizerInterface
     /**
      * Group requests by prefix.
      *
-     * @param Collection<int, BrunoRequest> $requests
+     * @param  Collection<int, BrunoRequest>  $requests
      * @return Collection<int, FolderNode>
      */
     private function groupByPrefix(Collection $requests): Collection
@@ -152,7 +152,7 @@ final class CollectionOrganizerService implements CollectionOrganizerInterface
     /**
      * Create folder hierarchy from path.
      *
-     * @param Collection<int, BrunoRequest> $requests
+     * @param  Collection<int, BrunoRequest>  $requests
      */
     private function createFolderHierarchy(string $path, Collection $requests): ?FolderNode
     {
@@ -190,8 +190,8 @@ final class CollectionOrganizerService implements CollectionOrganizerInterface
     /**
      * Create subfolders recursively.
      *
-     * @param array<int, string> $parts
-     * @param Collection<int, BrunoRequest> $requests
+     * @param  array<int, string>  $parts
+     * @param  Collection<int, BrunoRequest>  $requests
      * @return Collection<int, FolderNode>
      */
     private function createSubfolders(array $parts, string $parentPath, Collection $requests): Collection
@@ -201,7 +201,7 @@ final class CollectionOrganizerService implements CollectionOrganizerInterface
         }
 
         $name = array_shift($parts);
-        $path = $parentPath . '/' . $name;
+        $path = $parentPath.'/'.$name;
 
         if (empty($parts)) {
             // Leaf folder - add requests here
@@ -231,7 +231,7 @@ final class CollectionOrganizerService implements CollectionOrganizerInterface
     /**
      * Group requests by controller.
      *
-     * @param Collection<int, BrunoRequest> $requests
+     * @param  Collection<int, BrunoRequest>  $requests
      * @return Collection<int, FolderNode>
      */
     private function groupByController(Collection $requests): Collection
@@ -253,7 +253,7 @@ final class CollectionOrganizerService implements CollectionOrganizerInterface
     /**
      * Group requests by tag.
      *
-     * @param Collection<int, BrunoRequest> $requests
+     * @param  Collection<int, BrunoRequest>  $requests
      * @return Collection<int, FolderNode>
      */
     private function groupByTag(Collection $requests): Collection
@@ -269,7 +269,7 @@ final class CollectionOrganizerService implements CollectionOrganizerInterface
 
         foreach ($allTags as $tag) {
             $tagRequests = $requests->filter(function (BrunoRequest $request) use ($tag) {
-                return !empty($request->tags) && $request->tags[0] === $tag;
+                return ! empty($request->tags) && $request->tags[0] === $tag;
             });
 
             if ($tagRequests->isNotEmpty()) {

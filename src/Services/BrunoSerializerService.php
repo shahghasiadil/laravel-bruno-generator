@@ -20,7 +20,7 @@ use ShahGhasiAdil\LaravelBrunoGenerator\ValueObjects\FilePath;
 final class BrunoSerializerService implements BrunoSerializerInterface
 {
     /**
-     * @param array<string, mixed> $config
+     * @param  array<string, mixed>  $config
      */
     public function __construct(
         private readonly array $config = [],
@@ -80,7 +80,7 @@ final class BrunoSerializerService implements BrunoSerializerInterface
      */
     private function serializeCollectionJson(CollectionStructure $structure): string
     {
-        return json_encode($structure->metadata->toArray(), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n";
+        return json_encode($structure->metadata->toArray(), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)."\n";
     }
 
     /**
@@ -91,13 +91,13 @@ final class BrunoSerializerService implements BrunoSerializerInterface
     private function serializeFolder(FolderNode $folder, string $basePath, string $currentPath = ''): Collection
     {
         $files = collect();
-        $folderPath = $currentPath !== '' ? $currentPath . '/' . $folder->name : $folder->name;
+        $folderPath = $currentPath !== '' ? $currentPath.'/'.$folder->name : $folder->name;
 
         // Serialize requests in this folder
         foreach ($folder->requests as $request) {
             $filename = $this->generateFilename($request);
             $files->push([
-                'path' => FilePath::create($basePath, $folderPath . '/' . $filename),
+                'path' => FilePath::create($basePath, $folderPath.'/'.$filename),
                 'content' => new FileContent(
                     content: $this->serializeBruRequest($request),
                     type: FileType::BRUNO_REQUEST,
@@ -202,7 +202,7 @@ final class BrunoSerializerService implements BrunoSerializerInterface
             $blocks[] = $this->formatDocsBlock($request->docs);
         }
 
-        return implode("\n", $blocks) . "\n";
+        return implode("\n", $blocks)."\n";
     }
 
     /**
@@ -234,7 +234,7 @@ BRU;
 
         // Determine auth type
         $authType = 'none';
-        if ($auth !== null && !$auth->isNone()) {
+        if ($auth !== null && ! $auth->isNone()) {
             $authType = $auth->type->value;
         }
 
@@ -250,17 +250,17 @@ BRU;
     /**
      * Format query params block.
      *
-     * @param array<string, string> $params
+     * @param  array<string, string>  $params
      */
     private function formatParamsBlock(array $params): string
     {
-        $lines = ["params:query {"];
+        $lines = ['params:query {'];
 
         foreach ($params as $key => $value) {
             $lines[] = "  {$key}: {$value}";
         }
 
-        $lines[] = "}";
+        $lines[] = '}';
 
         return implode("\n", $lines);
     }
@@ -268,17 +268,17 @@ BRU;
     /**
      * Format headers block.
      *
-     * @param array<string, string> $headers
+     * @param  array<string, string>  $headers
      */
     private function formatHeadersBlock(array $headers): string
     {
-        $lines = ["headers {"];
+        $lines = ['headers {'];
 
         foreach ($headers as $key => $value) {
             $lines[] = "  {$key}: {$value}";
         }
 
-        $lines[] = "}";
+        $lines[] = '}';
 
         return implode("\n", $lines);
     }
@@ -299,7 +299,7 @@ BRU;
             $lines[] = "  {$key}: {$value}";
         }
 
-        $lines[] = "}";
+        $lines[] = '}';
 
         return implode("\n", $lines);
     }
@@ -309,7 +309,7 @@ BRU;
      */
     private function formatBodyBlock(?RequestBody $body): string
     {
-        if ($body === null || !$body->hasContent()) {
+        if ($body === null || ! $body->hasContent()) {
             return '';
         }
 
@@ -323,7 +323,7 @@ body:{$bodyType} {
 BRU;
         }
 
-        if ($body->type === BodyType::JSON && !empty($body->content)) {
+        if ($body->type === BodyType::JSON && ! empty($body->content)) {
             $json = json_encode($body->content, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
             $indented = $this->indentContent($json, 1);
 
@@ -334,12 +334,12 @@ body:json {
 BRU;
         }
 
-        if ($body->type === BodyType::FORM_URLENCODED && !empty($body->content)) {
-            $lines = ["body:form-urlencoded {"];
+        if ($body->type === BodyType::FORM_URLENCODED && ! empty($body->content)) {
+            $lines = ['body:form-urlencoded {'];
             foreach ($body->content as $key => $value) {
                 $lines[] = "  {$key}: {$value}";
             }
-            $lines[] = "}";
+            $lines[] = '}';
 
             return implode("\n", $lines);
         }
@@ -397,24 +397,24 @@ BRU;
         $indent = str_repeat('  ', $level);
         $lines = explode("\n", $content);
 
-        return implode("\n", array_map(fn ($line) => $indent . $line, $lines));
+        return implode("\n", array_map(fn ($line) => $indent.$line, $lines));
     }
 
     /**
      * Serialize environment .bru file.
      *
-     * @param array<string, string> $vars
+     * @param  array<string, string>  $vars
      */
     private function serializeEnvironment(string $name, array $vars): string
     {
-        $lines = ["vars {"];
+        $lines = ['vars {'];
 
         foreach ($vars as $key => $value) {
             $lines[] = "  {$key}: {$value}";
         }
 
-        $lines[] = "}";
+        $lines[] = '}';
 
-        return implode("\n", $lines) . "\n";
+        return implode("\n", $lines)."\n";
     }
 }

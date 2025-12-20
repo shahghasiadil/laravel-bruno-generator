@@ -17,7 +17,7 @@ final readonly class FilePath
         $normalizedBase = str_replace('\\', '/', $basePath);
 
         return new self(
-            absolutePath: rtrim($normalizedBase, '/') . '/' . ltrim($normalizedRelative, '/'),
+            absolutePath: rtrim($normalizedBase, '/').'/'.ltrim($normalizedRelative, '/'),
             relativePath: $normalizedRelative,
         );
     }

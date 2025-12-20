@@ -161,7 +161,8 @@ describe('FormRequestParserService', function () {
     });
 
     test('infers field types from field names when rules are generic', function () {
-        $class = new class extends \Illuminate\Foundation\Http\FormRequest {
+        $class = new class extends \Illuminate\Foundation\Http\FormRequest
+        {
             public function rules(): array
             {
                 return [
@@ -181,7 +182,8 @@ describe('FormRequestParserService', function () {
     });
 
     test('handles array rules format', function () {
-        $class = new class extends \Illuminate\Foundation\Http\FormRequest {
+        $class = new class extends \Illuminate\Foundation\Http\FormRequest
+        {
             public function rules(): array
             {
                 return [
@@ -199,7 +201,8 @@ describe('FormRequestParserService', function () {
     });
 
     test('respects min value in rules', function () {
-        $class = new class extends \Illuminate\Foundation\Http\FormRequest {
+        $class = new class extends \Illuminate\Foundation\Http\FormRequest
+        {
             public function rules(): array
             {
                 return [
@@ -216,7 +219,8 @@ describe('FormRequestParserService', function () {
     });
 
     test('handles max length in string rules', function () {
-        $class = new class extends \Illuminate\Foundation\Http\FormRequest {
+        $class = new class extends \Illuminate\Foundation\Http\FormRequest
+        {
             public function rules(): array
             {
                 return [

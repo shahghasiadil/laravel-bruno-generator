@@ -9,7 +9,7 @@ use ShahGhasiAdil\LaravelBrunoGenerator\Enums\BodyType;
 final readonly class RequestBody
 {
     /**
-     * @param array<string, mixed> $content
+     * @param  array<string, mixed>  $content
      */
     public function __construct(
         public BodyType $type,
@@ -19,6 +19,6 @@ final readonly class RequestBody
 
     public function hasContent(): bool
     {
-        return !empty($this->content) || $this->raw !== null;
+        return ! empty($this->content) || $this->raw !== null;
     }
 }

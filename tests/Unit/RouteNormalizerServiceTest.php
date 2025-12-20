@@ -8,7 +8,7 @@ use ShahGhasiAdil\LaravelBrunoGenerator\Services\FormRequestParserService;
 use ShahGhasiAdil\LaravelBrunoGenerator\Services\RouteNormalizerService;
 
 beforeEach(function () {
-    $this->formRequestParser = new FormRequestParserService();
+    $this->formRequestParser = new FormRequestParserService;
 
     $this->config = [
         'variables' => [

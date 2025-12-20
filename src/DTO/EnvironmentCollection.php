@@ -9,7 +9,7 @@ use Illuminate\Support\Collection;
 final readonly class EnvironmentCollection
 {
     /**
-     * @param Collection<string, EnvironmentConfig> $environments
+     * @param  Collection<string, EnvironmentConfig>  $environments
      */
     public function __construct(
         public Collection $environments,

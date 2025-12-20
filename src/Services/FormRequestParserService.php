@@ -7,7 +7,6 @@ namespace ShahGhasiAdil\LaravelBrunoGenerator\Services;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
 use ReflectionClass;
-use ReflectionMethod;
 use ReflectionNamedType;
 use ShahGhasiAdil\LaravelBrunoGenerator\DTO\RequestBody;
 use ShahGhasiAdil\LaravelBrunoGenerator\DTO\RouteInfo;
@@ -19,7 +18,7 @@ final class FormRequestParserService
     private int $currentNestingDepth = 0;
 
     /**
-     * @param array<string, mixed> $config
+     * @param  array<string, mixed>  $config
      */
     public function __construct(
         private readonly array $config = [],
@@ -57,7 +56,7 @@ final class FormRequestParserService
             // Build full controller class name from action
             $controllerClass = $this->resolveControllerClass($route->action);
 
-            if ($controllerClass === null || !class_exists($controllerClass)) {
+            if ($controllerClass === null || ! class_exists($controllerClass)) {
                 return null;
             }
 
@@ -68,7 +67,7 @@ final class FormRequestParserService
             foreach ($method->getParameters() as $parameter) {
                 $type = $parameter->getType();
 
-                if (!$type instanceof ReflectionNamedType || $type->isBuiltin()) {
+                if (! $type instanceof ReflectionNamedType || $type->isBuiltin()) {
                     continue;
                 }
 
@@ -108,11 +107,11 @@ final class FormRequestParserService
      */
     public function parse(string $formRequestClass): ?RequestBody
     {
-        if (!class_exists($formRequestClass)) {
+        if (! class_exists($formRequestClass)) {
             throw FormRequestParseException::classNotFound($formRequestClass);
         }
 
-        if (!is_subclass_of($formRequestClass, FormRequest::class)) {
+        if (! is_subclass_of($formRequestClass, FormRequest::class)) {
             throw FormRequestParseException::invalidFormRequest($formRequestClass);
         }
 
@@ -126,7 +125,7 @@ final class FormRequestParserService
             $rulesMethod->setAccessible(true);
             $rules = $rulesMethod->invoke($instance);
 
-            if (!is_array($rules) || empty($rules)) {
+            if (! is_array($rules) || empty($rules)) {
                 return null;
             }
 
@@ -147,7 +146,7 @@ final class FormRequestParserService
     /**
      * Convert validation rules to example values.
      *
-     * @param array<string, mixed> $rules
+     * @param  array<string, mixed>  $rules
      * @return array<string, mixed>
      */
     private function rulesToExampleValues(array $rules): array
@@ -162,7 +161,7 @@ final class FormRequestParserService
 
         foreach ($rules as $field => $fieldRules) {
             // Skip if field should be excluded
-            if (!$this->shouldIncludeField($fieldRules)) {
+            if (! $this->shouldIncludeField($fieldRules)) {
                 continue;
             }
 
@@ -179,14 +178,12 @@ final class FormRequestParserService
 
     /**
      * Determine if field should be included based on rules.
-     *
-     * @param mixed $rules
      */
     private function shouldIncludeField(mixed $rules): bool
     {
         $includeOptional = $this->config['advanced']['form_request']['include_optional_fields'] ?? true;
 
-        if (!$includeOptional) {
+        if (! $includeOptional) {
             $ruleString = is_array($rules) ? implode('|', $rules) : (string) $rules;
 
             // Exclude nullable and sometimes fields if configured
@@ -201,8 +198,7 @@ final class FormRequestParserService
     /**
      * Process nested field notation.
      *
-     * @param array<string, mixed> $result
-     * @param mixed $fieldRules
+     * @param  array<string, mixed>  $result
      */
     private function processNestedField(array &$result, string $field, mixed $fieldRules): void
     {
@@ -217,7 +213,7 @@ final class FormRequestParserService
             // Handle array notation (tags.*)
             if ($part === '*') {
                 // Initialize parent as array if not set
-                if (!is_array($current)) {
+                if (! is_array($current)) {
                     $current = [];
                 }
 
@@ -233,7 +229,7 @@ final class FormRequestParserService
                 }
             } else {
                 // Regular nested field
-                if (!isset($current[$part])) {
+                if (! isset($current[$part])) {
                     $current[$part] = $isLast ? null : [];
                 }
 
@@ -250,8 +246,6 @@ final class FormRequestParserService
 
     /**
      * Generate example value for field based on rules.
-     *
-     * @param mixed $rules
      */
     private function generateExampleValue(string $field, mixed $rules): mixed
     {
@@ -279,7 +273,6 @@ final class FormRequestParserService
     /**
      * Normalize rules to array format.
      *
-     * @param mixed $rules
      * @return array<int, string>
      */
     private function normalizeRules(mixed $rules): array
@@ -307,7 +300,7 @@ final class FormRequestParserService
     /**
      * Infer field type from name and rules.
      *
-     * @param array<int, string> $rules
+     * @param  array<int, string>  $rules
      */
     private function inferFieldType(string $field, array $rules): string
     {
@@ -354,7 +347,7 @@ final class FormRequestParserService
             str_contains($fieldLower, 'email') => 'email',
             str_contains($fieldLower, 'url') || str_contains($fieldLower, 'link') => 'url',
             str_contains($fieldLower, 'uuid') => 'uuid',
-            str_contains($fieldLower, 'date') && !str_contains($fieldLower, 'update') => 'date',
+            str_contains($fieldLower, 'date') && ! str_contains($fieldLower, 'update') => 'date',
             str_contains($fieldLower, 'time') => 'time',
             str_contains($fieldLower, 'is_') || str_contains($fieldLower, 'has_') => 'boolean',
             str_contains($fieldLower, 'count') || str_contains($fieldLower, 'age') || str_contains($fieldLower, '_id') => 'integer',
@@ -366,7 +359,7 @@ final class FormRequestParserService
     /**
      * Generate integer value from rules.
      *
-     * @param array<int, string> $rules
+     * @param  array<int, string>  $rules
      */
     private function generateIntegerValue(array $rules): int
     {
@@ -382,7 +375,7 @@ final class FormRequestParserService
     /**
      * Generate numeric value from rules.
      *
-     * @param array<int, string> $rules
+     * @param  array<int, string>  $rules
      */
     private function generateNumericValue(array $rules): float|int
     {
@@ -398,7 +391,7 @@ final class FormRequestParserService
     /**
      * Generate string value from field name and rules.
      *
-     * @param array<int, string> $rules
+     * @param  array<int, string>  $rules
      */
     private function generateStringValue(string $field, array $rules): string
     {

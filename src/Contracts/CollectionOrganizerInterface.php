@@ -14,7 +14,7 @@ interface CollectionOrganizerInterface
     /**
      * Organize requests into hierarchical structure.
      *
-     * @param Collection<int, BrunoRequest> $requests
+     * @param  Collection<int, BrunoRequest>  $requests
      */
     public function organize(Collection $requests, GroupStrategy $strategy): CollectionStructure;
 }
