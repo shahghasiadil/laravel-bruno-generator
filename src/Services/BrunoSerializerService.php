@@ -160,7 +160,7 @@ final class BrunoSerializerService implements BrunoSerializerInterface
         $blocks[] = $this->formatMetaBlock($request->name, $request->description, $request->sequence);
 
         // HTTP method block (required)
-        $blocks[] = $this->formatMethodBlock($request->method, $request->url);
+        $blocks[] = $this->formatMethodBlock($request->method, $request->url, $request->body, $request->auth);
 
         // Query params block
         if ($request->hasQueryParams()) {
@@ -222,15 +222,27 @@ BRU;
     /**
      * Format HTTP method block.
      */
-    private function formatMethodBlock(string $method, string $url): string
+    private function formatMethodBlock(string $method, string $url, ?RequestBody $body, ?AuthBlock $auth): string
     {
         $methodLower = strtolower($method);
+
+        // Determine body type
+        $bodyType = 'none';
+        if ($body !== null && $body->hasContent()) {
+            $bodyType = $body->type->value;
+        }
+
+        // Determine auth type
+        $authType = 'none';
+        if ($auth !== null && !$auth->isNone()) {
+            $authType = $auth->type->value;
+        }
 
         return <<<BRU
 {$methodLower} {
   url: {$url}
-  body: none
-  auth: none
+  body: {$bodyType}
+  auth: {$authType}
 }
 BRU;
     }
