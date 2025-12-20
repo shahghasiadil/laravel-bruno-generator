@@ -1,0 +1,223 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Only booleans are allowed in a negated boolean, array\|bool\|string\|null given\.$#'
+			identifier: booleanNot.exprNotBoolean
+			count: 1
+			path: src/Commands/BrunoClearCommand.php
+
+		-
+			message: '#^Only booleans are allowed in an if condition, array\|bool\|string\|null given\.$#'
+			identifier: if.condNotBoolean
+			count: 1
+			path: src/Commands/BrunoClearCommand.php
+
+		-
+			message: '#^Parameter \#1 \$path of function base_path expects string, array\|string\|true given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Commands/BrunoClearCommand.php
+
+		-
+			message: '#^Method ShahGhasiAdil\\LaravelBrunoGenerator\\Commands\\BrunoGenerateCommand\:\:displayDryRun\(\) has parameter \$files with generic class Illuminate\\Support\\Collection but does not specify its types\: TKey, TValue$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Commands/BrunoGenerateCommand.php
+
+		-
+			message: '#^Method ShahGhasiAdil\\LaravelBrunoGenerator\\Commands\\BrunoGenerateCommand\:\:displayDryRun\(\) has parameter \$structure with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: src/Commands/BrunoGenerateCommand.php
+
+		-
+			message: '#^Method ShahGhasiAdil\\LaravelBrunoGenerator\\Commands\\BrunoGenerateCommand\:\:sanitizeDirName\(\) should return string but returns string\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Commands/BrunoGenerateCommand.php
+
+		-
+			message: '#^Only booleans are allowed in an if condition, array\|bool\|string\|null given\.$#'
+			identifier: if.condNotBoolean
+			count: 7
+			path: src/Commands/BrunoGenerateCommand.php
+
+		-
+			message: '#^Parameter \#2 \$string of function explode expects string, array\|string\|true given\.$#'
+			identifier: argument.type
+			count: 4
+			path: src/Commands/BrunoGenerateCommand.php
+
+		-
+			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
+			identifier: empty.notAllowed
+			count: 2
+			path: src/DTO/BrunoRequest.php
+
+		-
+			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
+			identifier: empty.notAllowed
+			count: 1
+			path: src/DTO/EnvironmentConfig.php
+
+		-
+			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
+			identifier: empty.notAllowed
+			count: 1
+			path: src/DTO/RequestBody.php
+
+		-
+			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
+			identifier: empty.notAllowed
+			count: 2
+			path: src/Services/BrunoSerializerService.php
+
+		-
+			message: '#^Parameter \#1 \$content of method ShahGhasiAdil\\LaravelBrunoGenerator\\Services\\BrunoSerializerService\:\:indentContent\(\) expects string, string\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Services/BrunoSerializerService.php
+
+		-
+			message: '#^Parameter \#1 \$string of function trim expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Services/BrunoSerializerService.php
+
+		-
+			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
+			identifier: empty.notAllowed
+			count: 5
+			path: src/Services/CollectionOrganizerService.php
+
+		-
+			message: '#^Unable to resolve the template type TKey in call to function collect$#'
+			identifier: argument.templateType
+			count: 1
+			path: src/Services/CollectionOrganizerService.php
+
+		-
+			message: '#^Unable to resolve the template type TValue in call to function collect$#'
+			identifier: argument.templateType
+			count: 1
+			path: src/Services/CollectionOrganizerService.php
+
+		-
+			message: '#^Variable \$parts in empty\(\) always exists and is not falsy\.$#'
+			identifier: empty.variable
+			count: 1
+			path: src/Services/CollectionOrganizerService.php
+
+		-
+			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
+			identifier: empty.notAllowed
+			count: 2
+			path: src/Services/FileWriterService.php
+
+		-
+			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
+			identifier: empty.notAllowed
+			count: 2
+			path: src/Services/FormRequestParserService.php
+
+		-
+			message: '#^Only booleans are allowed in a negated boolean, mixed given\.$#'
+			identifier: booleanNot.exprNotBoolean
+			count: 1
+			path: src/Services/FormRequestParserService.php
+
+		-
+			message: '#^Only booleans are allowed in an if condition, int\|false given\.$#'
+			identifier: if.condNotBoolean
+			count: 3
+			path: src/Services/FormRequestParserService.php
+
+		-
+			message: '#^Parameter \#1 \$name of method ReflectionClass\<object\>\:\:getMethod\(\) expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Services/FormRequestParserService.php
+
+		-
+			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
+			identifier: empty.notAllowed
+			count: 1
+			path: src/Services/RouteDiscoveryService.php
+
+		-
+			message: '#^Parameter \#1 \$value of function collect expects Illuminate\\Contracts\\Support\\Arrayable\<\(int\|string\), mixed\>\|iterable\<\(int\|string\), mixed\>\|null, Illuminate\\Routing\\RouteCollectionInterface given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Services/RouteDiscoveryService.php
+
+		-
+			message: '#^Unable to resolve the template type TKey in call to function collect$#'
+			identifier: argument.templateType
+			count: 1
+			path: src/Services/RouteDiscoveryService.php
+
+		-
+			message: '#^Unable to resolve the template type TValue in call to function collect$#'
+			identifier: argument.templateType
+			count: 1
+			path: src/Services/RouteDiscoveryService.php
+
+		-
+			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
+			identifier: empty.notAllowed
+			count: 10
+			path: src/Services/RouteFilterService.php
+
+		-
+			message: '#^Call to function in_array\(\) requires parameter \#3 to be set\.$#'
+			identifier: function.strict
+			count: 2
+			path: src/Services/RouteNormalizerService.php
+
+		-
+			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
+			identifier: empty.notAllowed
+			count: 10
+			path: src/Services/RouteNormalizerService.php
+
+		-
+			message: '#^Method ShahGhasiAdil\\LaravelBrunoGenerator\\Services\\RouteNormalizerService\:\:buildUrl\(\) should return string but returns string\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Services/RouteNormalizerService.php
+
+		-
+			message: '#^Only booleans are allowed in a negated boolean, mixed given\.$#'
+			identifier: booleanNot.exprNotBoolean
+			count: 4
+			path: src/Services/RouteNormalizerService.php
+
+		-
+			message: '#^Only booleans are allowed in an if condition, mixed given\.$#'
+			identifier: if.condNotBoolean
+			count: 7
+			path: src/Services/RouteNormalizerService.php
+
+		-
+			message: '#^Result of \|\| is always true\.$#'
+			identifier: booleanOr.alwaysTrue
+			count: 1
+			path: src/Services/RouteNormalizerService.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between mixed~\(''none''\|null\) and ''none'' will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: src/Services/RouteNormalizerService.php
+
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 1
+			path: src/Services/RouteNormalizerService.php
+
+		-
+			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'
+			identifier: empty.notAllowed
+			count: 1
+			path: src/ValueObjects/FileContent.php
