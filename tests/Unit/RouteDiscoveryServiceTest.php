@@ -7,7 +7,29 @@ use ShahGhasiAdil\LaravelBrunoGenerator\Services\RouteDiscoveryService;
 use ShahGhasiAdil\LaravelBrunoGenerator\Tests\Fixtures\SampleController;
 
 beforeEach(function () {
-    // Routes are automatically reset between tests by Orchestra Testbench
+    // Clear all routes before each test
+    $router = app('router');
+
+    // Get the routes collection and clear it
+    $routes = $router->getRoutes();
+
+    // Clear routes using reflection to access protected property
+    $reflection = new \ReflectionClass($routes);
+    $property = $reflection->getProperty('routes');
+    $property->setAccessible(true);
+    $property->setValue($routes, []);
+
+    $property = $reflection->getProperty('allRoutes');
+    $property->setAccessible(true);
+    $property->setValue($routes, []);
+
+    $property = $reflection->getProperty('nameList');
+    $property->setAccessible(true);
+    $property->setValue($routes, []);
+
+    $property = $reflection->getProperty('actionList');
+    $property->setAccessible(true);
+    $property->setValue($routes, []);
 });
 
 describe('RouteDiscoveryService', function () {
