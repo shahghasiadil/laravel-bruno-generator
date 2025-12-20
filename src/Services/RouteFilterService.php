@@ -14,7 +14,7 @@ final class RouteFilterService implements RouteFilterInterface
     /**
      * Filter routes based on criteria.
      *
-     * @param Collection<int, RouteInfo> $routes
+     * @param  Collection<int, RouteInfo>  $routes
      * @return Collection<int, RouteInfo>
      */
     public function filter(Collection $routes, FilterCriteria $criteria): Collection
@@ -35,22 +35,22 @@ final class RouteFilterService implements RouteFilterInterface
         }
 
         // Check domain filter
-        if (!$this->matchesDomain($route, $criteria)) {
+        if (! $this->matchesDomain($route, $criteria)) {
             return false;
         }
 
         // Check middleware filters
-        if (!$this->matchesMiddleware($route, $criteria)) {
+        if (! $this->matchesMiddleware($route, $criteria)) {
             return false;
         }
 
         // Check prefix filters
-        if (!$this->matchesPrefix($route, $criteria)) {
+        if (! $this->matchesPrefix($route, $criteria)) {
             return false;
         }
 
         // Check name pattern filters
-        if (!$this->matchesNamePattern($route, $criteria)) {
+        if (! $this->matchesNamePattern($route, $criteria)) {
             return false;
         }
 
@@ -64,23 +64,23 @@ final class RouteFilterService implements RouteFilterInterface
     {
         // Auto-detect API routes
         if ($criteria->autoDetectApi) {
-            $hasApiMiddleware = !empty(array_intersect($route->middleware, ['api']));
-            if (!$hasApiMiddleware) {
+            $hasApiMiddleware = ! empty(array_intersect($route->middleware, ['api']));
+            if (! $hasApiMiddleware) {
                 return false;
             }
         }
 
         // Check include middleware
-        if (!empty($criteria->includeMiddleware)) {
-            $hasIncludedMiddleware = !empty(array_intersect($route->middleware, $criteria->includeMiddleware));
-            if (!$hasIncludedMiddleware) {
+        if (! empty($criteria->includeMiddleware)) {
+            $hasIncludedMiddleware = ! empty(array_intersect($route->middleware, $criteria->includeMiddleware));
+            if (! $hasIncludedMiddleware) {
                 return false;
             }
         }
 
         // Check exclude middleware
-        if (!empty($criteria->excludeMiddleware)) {
-            $hasExcludedMiddleware = !empty(array_intersect($route->middleware, $criteria->excludeMiddleware));
+        if (! empty($criteria->excludeMiddleware)) {
+            $hasExcludedMiddleware = ! empty(array_intersect($route->middleware, $criteria->excludeMiddleware));
             if ($hasExcludedMiddleware) {
                 return false;
             }
@@ -95,7 +95,7 @@ final class RouteFilterService implements RouteFilterInterface
     private function matchesPrefix(RouteInfo $route, FilterCriteria $criteria): bool
     {
         // Check include prefixes
-        if (!empty($criteria->includePrefixes)) {
+        if (! empty($criteria->includePrefixes)) {
             $matchesInclude = false;
             foreach ($criteria->includePrefixes as $prefix) {
                 if (str_starts_with($route->uri, $prefix)) {
@@ -103,13 +103,13 @@ final class RouteFilterService implements RouteFilterInterface
                     break;
                 }
             }
-            if (!$matchesInclude) {
+            if (! $matchesInclude) {
                 return false;
             }
         }
 
         // Check exclude prefixes
-        if (!empty($criteria->excludePrefixes)) {
+        if (! empty($criteria->excludePrefixes)) {
             foreach ($criteria->excludePrefixes as $prefix) {
                 if (str_starts_with($route->uri, $prefix)) {
                     return false;
@@ -132,7 +132,7 @@ final class RouteFilterService implements RouteFilterInterface
         }
 
         // Check include name patterns
-        if (!empty($criteria->includeNames)) {
+        if (! empty($criteria->includeNames)) {
             $matchesInclude = false;
             foreach ($criteria->includeNames as $pattern) {
                 if ($this->matchesRegexPattern($route->name, $pattern)) {
@@ -140,13 +140,13 @@ final class RouteFilterService implements RouteFilterInterface
                     break;
                 }
             }
-            if (!$matchesInclude) {
+            if (! $matchesInclude) {
                 return false;
             }
         }
 
         // Check exclude name patterns
-        if (!empty($criteria->excludeNames)) {
+        if (! empty($criteria->excludeNames)) {
             foreach ($criteria->excludeNames as $pattern) {
                 if ($this->matchesRegexPattern($route->name, $pattern)) {
                     return false;
@@ -181,7 +181,7 @@ final class RouteFilterService implements RouteFilterInterface
     private function matchesRegexPattern(string $string, string $pattern): bool
     {
         // If pattern doesn't look like regex, treat as exact match
-        if (!str_starts_with($pattern, '/')) {
+        if (! str_starts_with($pattern, '/')) {
             return $string === $pattern;
         }
 

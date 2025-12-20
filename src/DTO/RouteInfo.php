@@ -7,9 +7,9 @@ namespace ShahGhasiAdil\LaravelBrunoGenerator\DTO;
 final readonly class RouteInfo
 {
     /**
-     * @param array<int, string> $methods
-     * @param array<int, string> $middleware
-     * @param array<string, string> $parameters
+     * @param  array<int, string>  $methods
+     * @param  array<int, string>  $middleware
+     * @param  array<string, string>  $parameters
      */
     public function __construct(
         public string $uri,

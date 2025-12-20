@@ -9,7 +9,7 @@ use ShahGhasiAdil\LaravelBrunoGenerator\Enums\AuthType;
 final readonly class AuthBlock
 {
     /**
-     * @param array<string, string> $config
+     * @param  array<string, string>  $config
      */
     public function __construct(
         public AuthType $type,

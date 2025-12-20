@@ -7,7 +7,7 @@ use ShahGhasiAdil\LaravelBrunoGenerator\Services\RouteFilterService;
 use ShahGhasiAdil\LaravelBrunoGenerator\ValueObjects\FilterCriteria;
 
 beforeEach(function () {
-    $this->service = new RouteFilterService();
+    $this->service = new RouteFilterService;
 
     $this->sampleRoutes = collect([
         new RouteInfo(

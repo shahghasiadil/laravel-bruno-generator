@@ -7,13 +7,13 @@ namespace ShahGhasiAdil\LaravelBrunoGenerator\ValueObjects;
 final readonly class FilterCriteria
 {
     /**
-     * @param array<int, string> $includeMiddleware
-     * @param array<int, string> $excludeMiddleware
-     * @param array<int, string> $includePrefixes
-     * @param array<int, string> $excludePrefixes
-     * @param array<int, string> $includeNames
-     * @param array<int, string> $excludeNames
-     * @param array<int, string>|null $includeDomains
+     * @param  array<int, string>  $includeMiddleware
+     * @param  array<int, string>  $excludeMiddleware
+     * @param  array<int, string>  $includePrefixes
+     * @param  array<int, string>  $excludePrefixes
+     * @param  array<int, string>  $includeNames
+     * @param  array<int, string>  $excludeNames
+     * @param  array<int, string>|null  $includeDomains
      */
     public function __construct(
         public bool $autoDetectApi,
@@ -30,7 +30,7 @@ final readonly class FilterCriteria
     /**
      * Create from config array.
      *
-     * @param array<string, mixed> $config
+     * @param  array<string, mixed>  $config
      */
     public static function fromConfig(array $config): self
     {

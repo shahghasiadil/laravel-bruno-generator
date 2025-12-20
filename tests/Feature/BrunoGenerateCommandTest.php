@@ -6,14 +6,13 @@ use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Route;
 use ShahGhasiAdil\LaravelBrunoGenerator\Tests\Fixtures\SampleController;
-use ShahGhasiAdil\LaravelBrunoGenerator\Tests\Fixtures\SampleFormRequest;
 
 beforeEach(function () {
-    $this->filesystem = new Filesystem();
-    $this->testOutputPath = base_path('test-bruno-' . uniqid());
+    $this->filesystem = new Filesystem;
+    $this->testOutputPath = base_path('test-bruno-'.uniqid());
 
     // Configure output path
-    Config::set('bruno-generator.output_path', 'test-bruno-' . uniqid());
+    Config::set('bruno-generator.output_path', 'test-bruno-'.uniqid());
     Config::set('bruno-generator.collection_name', 'Test API');
 
     // Setup test routes
@@ -49,18 +48,18 @@ describe('BrunoGenerateCommand', function () {
             ->assertSuccessful();
 
         // Verify bruno.json was created
-        $collectionPath = base_path(Config::get('bruno-generator.output_path') . '/Test-API');
-        expect($this->filesystem->exists($collectionPath . '/bruno.json'))->toBeTrue();
+        $collectionPath = base_path(Config::get('bruno-generator.output_path').'/Test-API');
+        expect($this->filesystem->exists($collectionPath.'/bruno.json'))->toBeTrue();
     });
 
     test('generates .bru files for each route', function () {
         $this->artisan('bruno:generate', ['--force' => true])
             ->assertSuccessful();
 
-        $collectionPath = base_path(Config::get('bruno-generator.output_path') . '/Test-API');
+        $collectionPath = base_path(Config::get('bruno-generator.output_path').'/Test-API');
 
         // Should have .bru files
-        $bruFiles = $this->filesystem->glob($collectionPath . '/**/*.bru');
+        $bruFiles = $this->filesystem->glob($collectionPath.'/**/*.bru');
         expect(count($bruFiles))->toBeGreaterThan(0);
     });
 
@@ -68,9 +67,9 @@ describe('BrunoGenerateCommand', function () {
         $this->artisan('bruno:generate', ['--force' => true])
             ->assertSuccessful();
 
-        $collectionPath = base_path(Config::get('bruno-generator.output_path') . '/Test-API');
+        $collectionPath = base_path(Config::get('bruno-generator.output_path').'/Test-API');
 
-        expect($this->filesystem->exists($collectionPath . '/environments/Local.bru'))->toBeTrue();
+        expect($this->filesystem->exists($collectionPath.'/environments/Local.bru'))->toBeTrue();
     });
 
     test('respects --api-only flag', function () {
@@ -82,8 +81,8 @@ describe('BrunoGenerateCommand', function () {
         $this->artisan('bruno:generate', ['--api-only' => true, '--force' => true])
             ->assertSuccessful();
 
-        $collectionPath = base_path(Config::get('bruno-generator.output_path') . '/Test-API');
-        $bruFiles = $this->filesystem->glob($collectionPath . '/**/*.bru');
+        $collectionPath = base_path(Config::get('bruno-generator.output_path').'/Test-API');
+        $bruFiles = $this->filesystem->glob($collectionPath.'/**/*.bru');
 
         // Should not include web routes
         $content = '';
@@ -100,8 +99,8 @@ describe('BrunoGenerateCommand', function () {
             '--force' => true,
         ])->assertSuccessful();
 
-        $collectionPath = base_path(Config::get('bruno-generator.output_path') . '/Test-API');
-        $bruFiles = $this->filesystem->glob($collectionPath . '/**/*.bru');
+        $collectionPath = base_path(Config::get('bruno-generator.output_path').'/Test-API');
+        $bruFiles = $this->filesystem->glob($collectionPath.'/**/*.bru');
 
         // All routes should be under api/users prefix
         foreach ($bruFiles as $file) {
@@ -118,10 +117,10 @@ describe('BrunoGenerateCommand', function () {
             '--force' => true,
         ])->assertSuccessful();
 
-        $collectionPath = base_path(Config::get('bruno-generator.output_path') . '/Test-API');
+        $collectionPath = base_path(Config::get('bruno-generator.output_path').'/Test-API');
 
         // Should have controller-based folders
-        expect($this->filesystem->exists($collectionPath . '/SampleController'))->toBeTrue();
+        expect($this->filesystem->exists($collectionPath.'/SampleController'))->toBeTrue();
     });
 
     test('handles --dry-run flag', function () {
@@ -130,7 +129,7 @@ describe('BrunoGenerateCommand', function () {
             ->assertSuccessful();
 
         // Should not create files
-        $collectionPath = base_path(Config::get('bruno-generator.output_path') . '/Test-API');
+        $collectionPath = base_path(Config::get('bruno-generator.output_path').'/Test-API');
         expect($this->filesystem->exists($collectionPath))->toBeFalse();
     });
 
@@ -157,8 +156,8 @@ describe('BrunoGenerateCommand', function () {
         $this->artisan('bruno:generate', ['--force' => true])
             ->assertSuccessful();
 
-        $collectionPath = base_path(Config::get('bruno-generator.output_path') . '/Test-API');
-        $brunoJson = json_decode($this->filesystem->get($collectionPath . '/bruno.json'), true);
+        $collectionPath = base_path(Config::get('bruno-generator.output_path').'/Test-API');
+        $brunoJson = json_decode($this->filesystem->get($collectionPath.'/bruno.json'), true);
 
         expect($brunoJson)->toHaveKeys(['version', 'name', 'type']);
         expect($brunoJson['version'])->toBe('1');
@@ -170,13 +169,14 @@ describe('BrunoGenerateCommand', function () {
         $this->artisan('bruno:generate', ['--force' => true])
             ->assertSuccessful();
 
-        $collectionPath = base_path(Config::get('bruno-generator.output_path') . '/Test-API');
+        $collectionPath = base_path(Config::get('bruno-generator.output_path').'/Test-API');
         $allFiles = $this->filesystem->allFiles($collectionPath);
 
         // Filter for .bru files that are not in environments folder
         $requestFiles = array_filter($allFiles, function ($file) {
             $normalized = str_replace('\\', '/', $file->getPathname());
-            return $file->getExtension() === 'bru' && !str_contains($normalized, '/environments/');
+
+            return $file->getExtension() === 'bru' && ! str_contains($normalized, '/environments/');
         });
 
         expect($requestFiles)->not->toBeEmpty();
@@ -193,13 +193,14 @@ describe('BrunoGenerateCommand', function () {
         $this->artisan('bruno:generate', ['--force' => true])
             ->assertSuccessful();
 
-        $collectionPath = base_path(Config::get('bruno-generator.output_path') . '/Test-API');
+        $collectionPath = base_path(Config::get('bruno-generator.output_path').'/Test-API');
         $allFiles = $this->filesystem->allFiles($collectionPath);
 
         // Filter for .bru files that are not in environments folder
         $requestFiles = array_filter($allFiles, function ($file) {
             $normalized = str_replace('\\', '/', $file->getPathname());
-            return $file->getExtension() === 'bru' && !str_contains($normalized, '/environments/');
+
+            return $file->getExtension() === 'bru' && ! str_contains($normalized, '/environments/');
         });
 
         expect($requestFiles)->not->toBeEmpty();
@@ -221,8 +222,8 @@ describe('BrunoGenerateCommand', function () {
         $this->artisan('bruno:generate', ['--force' => true])
             ->assertSuccessful();
 
-        $collectionPath = base_path(Config::get('bruno-generator.output_path') . '/Test-API');
-        $envContent = $this->filesystem->get($collectionPath . '/environments/Local.bru');
+        $collectionPath = base_path(Config::get('bruno-generator.output_path').'/Test-API');
+        $envContent = $this->filesystem->get($collectionPath.'/environments/Local.bru');
 
         expect($envContent)->toContain('vars {');
         expect($envContent)->toContain('baseUrl:');
@@ -234,10 +235,10 @@ describe('BrunoGenerateCommand', function () {
             '--force' => true,
         ])->assertSuccessful();
 
-        $collectionPath = base_path(Config::get('bruno-generator.output_path') . '/Custom-API');
+        $collectionPath = base_path(Config::get('bruno-generator.output_path').'/Custom-API');
         expect($this->filesystem->exists($collectionPath))->toBeTrue();
 
-        $brunoJson = json_decode($this->filesystem->get($collectionPath . '/bruno.json'), true);
+        $brunoJson = json_decode($this->filesystem->get($collectionPath.'/bruno.json'), true);
         expect($brunoJson['name'])->toBe('Custom API');
     });
 
@@ -252,8 +253,8 @@ describe('BrunoGenerateCommand', function () {
             '--force' => true,
         ])->assertSuccessful();
 
-        $collectionPath = base_path(Config::get('bruno-generator.output_path') . '/Test-API');
-        $bruFiles = $this->filesystem->glob($collectionPath . '/**/*.bru');
+        $collectionPath = base_path(Config::get('bruno-generator.output_path').'/Test-API');
+        $bruFiles = $this->filesystem->glob($collectionPath.'/**/*.bru');
 
         $content = '';
         foreach ($bruFiles as $file) {
@@ -264,14 +265,14 @@ describe('BrunoGenerateCommand', function () {
     });
 
     test('generates with custom output path', function () {
-        $customPath = 'custom-output-' . uniqid();
+        $customPath = 'custom-output-'.uniqid();
 
         $this->artisan('bruno:generate', [
             '--output' => $customPath,
             '--force' => true,
         ])->assertSuccessful();
 
-        $collectionPath = base_path($customPath . '/Test-API');
+        $collectionPath = base_path($customPath.'/Test-API');
         expect($this->filesystem->exists($collectionPath))->toBeTrue();
 
         // Cleanup

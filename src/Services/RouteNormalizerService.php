@@ -19,7 +19,7 @@ final class RouteNormalizerService implements RouteNormalizerInterface
     private int $sequence = 0;
 
     /**
-     * @param array<string, mixed> $config
+     * @param  array<string, mixed>  $config
      */
     public function __construct(
         private readonly FormRequestParserService $formRequestParser,
@@ -29,7 +29,7 @@ final class RouteNormalizerService implements RouteNormalizerInterface
     /**
      * Normalize routes to Bruno request format.
      *
-     * @param Collection<int, RouteInfo> $routes
+     * @param  Collection<int, RouteInfo>  $routes
      * @return Collection<int, BrunoRequest>
      */
     public function normalize(Collection $routes): Collection
@@ -117,10 +117,10 @@ final class RouteNormalizerService implements RouteNormalizerInterface
         }
 
         // Generate from URI and method
-        $uriParts = array_filter(explode('/', $route->uri), fn ($part) => !str_contains($part, '{'));
-        $resourceName = !empty($uriParts) ? end($uriParts) : 'Request';
+        $uriParts = array_filter(explode('/', $route->uri), fn ($part) => ! str_contains($part, '{'));
+        $resourceName = ! empty($uriParts) ? end($uriParts) : 'Request';
 
-        return Str::title($method . ' ' . Str::singular(Str::headline($resourceName)));
+        return Str::title($method.' '.Str::singular(Str::headline($resourceName)));
     }
 
     /**
@@ -132,15 +132,15 @@ final class RouteNormalizerService implements RouteNormalizerInterface
 
         // Use route name as base description
         if ($route->name !== null) {
-            $description = 'Endpoint: ' . $route->name;
+            $description = 'Endpoint: '.$route->name;
         } elseif ($route->controller !== null && $route->controllerMethod !== null) {
             $description = "Controller: {$route->controller}@{$route->controllerMethod}";
         } else {
-            $description = 'API endpoint for ' . $route->uri;
+            $description = 'API endpoint for '.$route->uri;
         }
 
         // Add middleware info if present
-        if (!empty($route->middleware)) {
+        if (! empty($route->middleware)) {
             $middlewareList = implode(', ', array_slice($route->middleware, 0, 3));
             if (count($route->middleware) > 3) {
                 $middlewareList .= '...';
@@ -157,7 +157,7 @@ final class RouteNormalizerService implements RouteNormalizerInterface
     private function buildUrl(RouteInfo $route): string
     {
         $baseUrlVar = $this->config['variables']['base_url_var'] ?? 'baseUrl';
-        $url = '{{' . $baseUrlVar . '}}/' . ltrim($route->uri, '/');
+        $url = '{{'.$baseUrlVar.'}}/'.ltrim($route->uri, '/');
 
         // Convert route parameters to Bruno variables
         // Use negative lookbehind/lookahead to avoid matching {{baseUrl}}
@@ -175,7 +175,7 @@ final class RouteNormalizerService implements RouteNormalizerInterface
      */
     private function buildHeaders(RouteInfo $route, string $method): array
     {
-        if (!($this->config['request_generation']['include_default_headers'] ?? true)) {
+        if (! ($this->config['request_generation']['include_default_headers'] ?? true)) {
             return [];
         }
 
@@ -239,7 +239,7 @@ final class RouteNormalizerService implements RouteNormalizerInterface
     private function parseRequestBody(RouteInfo $route, string $method): ?RequestBody
     {
         // Only include body for methods that typically have one
-        if (!in_array(strtoupper($method), ['POST', 'PUT', 'PATCH'])) {
+        if (! in_array(strtoupper($method), ['POST', 'PUT', 'PATCH'])) {
             return null;
         }
 
@@ -264,7 +264,7 @@ final class RouteNormalizerService implements RouteNormalizerInterface
      */
     private function determineAuth(RouteInfo $route): ?AuthBlock
     {
-        if (!($this->config['auth']['include_auth'] ?? true)) {
+        if (! ($this->config['auth']['include_auth'] ?? true)) {
             return null;
         }
 
@@ -272,9 +272,9 @@ final class RouteNormalizerService implements RouteNormalizerInterface
         $authMiddleware = $this->config['auth']['auth_middleware'] ?? [];
 
         // Check if route has auth middleware
-        $hasAuth = !empty(array_intersect($route->middleware, $authMiddleware));
+        $hasAuth = ! empty(array_intersect($route->middleware, $authMiddleware));
 
-        if (!$hasAuth && $authMode === 'none') {
+        if (! $hasAuth && $authMode === 'none') {
             return null;
         }
 
@@ -300,7 +300,7 @@ final class RouteNormalizerService implements RouteNormalizerInterface
 
         $config = match ($authType) {
             AuthType::BEARER => [
-                'token' => '{{' . ($this->config['auth']['bearer_token_var'] ?? 'authToken') . '}}',
+                'token' => '{{'.($this->config['auth']['bearer_token_var'] ?? 'authToken').'}}',
             ],
             AuthType::BASIC => [
                 'username' => '{{username}}',
@@ -336,7 +336,7 @@ final class RouteNormalizerService implements RouteNormalizerInterface
     private function extractGroupFromPrefix(RouteInfo $route): ?string
     {
         $depth = $this->config['organization']['folder_depth'] ?? 2;
-        $parts = array_filter(explode('/', $route->uri), fn ($part) => !str_contains($part, '{'));
+        $parts = array_filter(explode('/', $route->uri), fn ($part) => ! str_contains($part, '{'));
 
         if (empty($parts)) {
             return null;
@@ -355,7 +355,7 @@ final class RouteNormalizerService implements RouteNormalizerInterface
     {
         $tags = $this->extractTags($route);
 
-        return !empty($tags) ? $tags[0] : null;
+        return ! empty($tags) ? $tags[0] : null;
     }
 
     /**
@@ -378,7 +378,7 @@ final class RouteNormalizerService implements RouteNormalizerInterface
         // Extract from controller
         if ($route->controller !== null) {
             $controllerTag = str_replace('Controller', '', $route->controller);
-            if (!in_array($controllerTag, $tags, true)) {
+            if (! in_array($controllerTag, $tags, true)) {
                 $tags[] = $controllerTag;
             }
         }
@@ -391,7 +391,7 @@ final class RouteNormalizerService implements RouteNormalizerInterface
      */
     private function extractPhpDocDocs(RouteInfo $route): ?string
     {
-        if (!($this->config['advanced']['include_phpdoc_docs'] ?? true)) {
+        if (! ($this->config['advanced']['include_phpdoc_docs'] ?? true)) {
             return null;
         }
 
@@ -402,7 +402,7 @@ final class RouteNormalizerService implements RouteNormalizerInterface
         try {
             $controllerClass = $this->resolveControllerClass($route->action);
 
-            if ($controllerClass === null || !class_exists($controllerClass)) {
+            if ($controllerClass === null || ! class_exists($controllerClass)) {
                 return null;
             }
 
@@ -476,7 +476,7 @@ final class RouteNormalizerService implements RouteNormalizerInterface
      */
     private function generateTests(RouteInfo $route, string $method): ?string
     {
-        if (!($this->config['advanced']['generate_tests'] ?? false)) {
+        if (! ($this->config['advanced']['generate_tests'] ?? false)) {
             return null;
         }
 
@@ -485,7 +485,7 @@ final class RouteNormalizerService implements RouteNormalizerInterface
 
         // Status check test
         if ($templates['status_check'] ?? true) {
-            $tests[] = <<<JS
+            $tests[] = <<<'JS'
 test("should return successful response", function() {
   expect(res.getStatus()).to.equal(200);
 });
@@ -494,7 +494,7 @@ JS;
 
         // Response time test
         if ($templates['response_time'] ?? false) {
-            $tests[] = <<<JS
+            $tests[] = <<<'JS'
 test("should respond within acceptable time", function() {
   expect(res.getResponseTime()).to.be.below(1000);
 });
@@ -503,14 +503,14 @@ JS;
 
         // Schema validation test
         if ($templates['schema_validation'] ?? false) {
-            $tests[] = <<<JS
+            $tests[] = <<<'JS'
 test("should return valid JSON", function() {
   expect(res.getBody()).to.be.an('object');
 });
 JS;
         }
 
-        return !empty($tests) ? implode("\n\n", $tests) : null;
+        return ! empty($tests) ? implode("\n\n", $tests) : null;
     }
 
     /**
@@ -526,7 +526,7 @@ JS;
         if ($this->config['advanced']['generate_pre_request_scripts'] ?? false) {
             $preTemplates = $this->config['advanced']['script_templates']['pre_request'] ?? [];
 
-            if (!empty($preTemplates)) {
+            if (! empty($preTemplates)) {
                 $scripts['pre'] = implode("\n", $preTemplates);
             }
         }
@@ -535,7 +535,7 @@ JS;
         if ($this->config['advanced']['generate_post_response_scripts'] ?? false) {
             $postTemplates = $this->config['advanced']['script_templates']['post_response'] ?? [];
 
-            if (!empty($postTemplates)) {
+            if (! empty($postTemplates)) {
                 $scripts['post'] = implode("\n", $postTemplates);
             }
         }

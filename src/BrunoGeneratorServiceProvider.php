@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace ShahGhasiAdil\LaravelBrunoGenerator;
 
 use Illuminate\Support\ServiceProvider;
-use ShahGhasiAdil\LaravelBrunoGenerator\Commands\BrunoGenerateCommand;
 use ShahGhasiAdil\LaravelBrunoGenerator\Commands\BrunoClearCommand;
+use ShahGhasiAdil\LaravelBrunoGenerator\Commands\BrunoGenerateCommand;
 use ShahGhasiAdil\LaravelBrunoGenerator\Contracts\BrunoSerializerInterface;
 use ShahGhasiAdil\LaravelBrunoGenerator\Contracts\CollectionOrganizerInterface;
 use ShahGhasiAdil\LaravelBrunoGenerator\Contracts\FileWriterInterface;

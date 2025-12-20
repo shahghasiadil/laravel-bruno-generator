@@ -120,7 +120,7 @@ final class BrunoGenerateCommand extends Command
             $this->fileWriter->write($files, $force);
 
             $this->newLine();
-            $this->info("✅ Successfully generated Bruno collection!");
+            $this->info('✅ Successfully generated Bruno collection!');
             $this->info("📁 Output: {$outputPath}");
             $this->info("📊 Total requests: {$structure->totalRequests()}");
             $this->newLine();
@@ -203,7 +203,7 @@ final class BrunoGenerateCommand extends Command
         $basePath = base_path($path);
         $sanitizedName = $this->sanitizeDirName($collectionName);
 
-        return rtrim($basePath, '/') . '/' . $sanitizedName;
+        return rtrim($basePath, '/').'/'.$sanitizedName;
     }
 
     /**
@@ -217,7 +217,7 @@ final class BrunoGenerateCommand extends Command
     /**
      * Display dry-run information.
      *
-     * @param \Illuminate\Support\Collection $files
+     * @param  \Illuminate\Support\Collection  $files
      */
     private function displayDryRun($files, $structure): void
     {
@@ -256,7 +256,7 @@ final class BrunoGenerateCommand extends Command
     {
         $this->info('Next steps:');
         $this->line('  1. Open Bruno application');
-        $this->line("  2. Click \"Open Collection\"");
+        $this->line('  2. Click "Open Collection"');
         $this->line("  3. Navigate to: {$outputPath}");
         $this->line('  4. Start testing your API!');
         $this->newLine();

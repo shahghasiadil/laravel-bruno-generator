@@ -9,8 +9,8 @@ use Illuminate\Support\Collection;
 final readonly class CollectionStructure
 {
     /**
-     * @param Collection<int, FolderNode> $folders
-     * @param Collection<int, BrunoRequest> $rootRequests
+     * @param  Collection<int, FolderNode>  $folders
+     * @param  Collection<int, BrunoRequest>  $rootRequests
      */
     public function __construct(
         public CollectionMetadata $metadata,

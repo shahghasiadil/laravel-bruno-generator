@@ -7,7 +7,7 @@ namespace ShahGhasiAdil\LaravelBrunoGenerator\DTO;
 final readonly class EnvironmentConfig
 {
     /**
-     * @param array<string, string> $variables
+     * @param  array<string, string>  $variables
      */
     public function __construct(
         public string $name,
@@ -16,6 +16,6 @@ final readonly class EnvironmentConfig
 
     public function hasVariables(): bool
     {
-        return !empty($this->variables);
+        return ! empty($this->variables);
     }
 }

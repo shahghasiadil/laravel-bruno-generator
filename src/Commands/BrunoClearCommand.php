@@ -39,15 +39,15 @@ final class BrunoClearCommand extends Command
     {
         $path = $this->getCollectionPath();
 
-        if (!$this->filesystem->exists($path)) {
+        if (! $this->filesystem->exists($path)) {
             $this->info("Collection does not exist at: {$path}");
 
             return self::SUCCESS;
         }
 
         // Confirm deletion
-        if (!$this->option('force')) {
-            if (!$this->confirm("Are you sure you want to delete the collection at {$path}?", false)) {
+        if (! $this->option('force')) {
+            if (! $this->confirm("Are you sure you want to delete the collection at {$path}?", false)) {
                 $this->info('Operation cancelled.');
 
                 return self::SUCCESS;
@@ -81,6 +81,6 @@ final class BrunoClearCommand extends Command
         $basePath = base_path($outputPath);
         $sanitizedName = preg_replace('/[^a-zA-Z0-9_-]/', '-', $collectionName);
 
-        return rtrim($basePath, '/') . '/' . $sanitizedName;
+        return rtrim($basePath, '/').'/'.$sanitizedName;
     }
 }

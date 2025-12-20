@@ -6,8 +6,8 @@ namespace ShahGhasiAdil\LaravelBrunoGenerator\Contracts;
 
 use Illuminate\Support\Collection;
 use ShahGhasiAdil\LaravelBrunoGenerator\DTO\CollectionStructure;
-use ShahGhasiAdil\LaravelBrunoGenerator\ValueObjects\FilePath;
 use ShahGhasiAdil\LaravelBrunoGenerator\ValueObjects\FileContent;
+use ShahGhasiAdil\LaravelBrunoGenerator\ValueObjects\FilePath;
 
 interface BrunoSerializerInterface
 {

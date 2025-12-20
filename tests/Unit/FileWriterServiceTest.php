@@ -10,9 +10,9 @@ use ShahGhasiAdil\LaravelBrunoGenerator\ValueObjects\FileContent;
 use ShahGhasiAdil\LaravelBrunoGenerator\ValueObjects\FilePath;
 
 beforeEach(function () {
-    $this->filesystem = new Filesystem();
+    $this->filesystem = new Filesystem;
     $this->service = new FileWriterService($this->filesystem);
-    $this->testDir = sys_get_temp_dir() . '/bruno-test-' . uniqid();
+    $this->testDir = sys_get_temp_dir().'/bruno-test-'.uniqid();
 });
 
 afterEach(function () {
@@ -32,8 +32,8 @@ describe('FileWriterService', function () {
 
         $this->service->write($files, false);
 
-        expect($this->filesystem->exists($this->testDir . '/test.bru'))->toBeTrue();
-        expect($this->filesystem->get($this->testDir . '/test.bru'))->toBe('test content');
+        expect($this->filesystem->exists($this->testDir.'/test.bru'))->toBeTrue();
+        expect($this->filesystem->get($this->testDir.'/test.bru'))->toBe('test content');
     });
 
     test('creates nested directories automatically', function () {
@@ -46,7 +46,7 @@ describe('FileWriterService', function () {
 
         $this->service->write($files, false);
 
-        expect($this->filesystem->exists($this->testDir . '/api/v1/users/get-users.bru'))->toBeTrue();
+        expect($this->filesystem->exists($this->testDir.'/api/v1/users/get-users.bru'))->toBeTrue();
     });
 
     test('writes multiple files', function () {
@@ -67,15 +67,15 @@ describe('FileWriterService', function () {
 
         $this->service->write($files, false);
 
-        expect($this->filesystem->exists($this->testDir . '/file1.bru'))->toBeTrue();
-        expect($this->filesystem->exists($this->testDir . '/file2.bru'))->toBeTrue();
-        expect($this->filesystem->exists($this->testDir . '/bruno.json'))->toBeTrue();
+        expect($this->filesystem->exists($this->testDir.'/file1.bru'))->toBeTrue();
+        expect($this->filesystem->exists($this->testDir.'/file2.bru'))->toBeTrue();
+        expect($this->filesystem->exists($this->testDir.'/bruno.json'))->toBeTrue();
     });
 
     test('throws exception when directory exists and force is false', function () {
         // Create directory with existing file
         $this->filesystem->makeDirectory($this->testDir);
-        $this->filesystem->put($this->testDir . '/existing.txt', 'existing');
+        $this->filesystem->put($this->testDir.'/existing.txt', 'existing');
 
         $files = collect([
             [
@@ -91,7 +91,7 @@ describe('FileWriterService', function () {
     test('overwrites when force is true', function () {
         // Create directory with existing file
         $this->filesystem->makeDirectory($this->testDir);
-        $this->filesystem->put($this->testDir . '/existing.txt', 'old content');
+        $this->filesystem->put($this->testDir.'/existing.txt', 'old content');
 
         $files = collect([
             [
@@ -102,13 +102,13 @@ describe('FileWriterService', function () {
 
         $this->service->write($files, true);
 
-        expect($this->filesystem->get($this->testDir . '/existing.txt'))->toBe('new content');
+        expect($this->filesystem->get($this->testDir.'/existing.txt'))->toBe('new content');
     });
 
     test('creates backup when overwriting', function () {
         // Create directory with existing file
         $this->filesystem->makeDirectory($this->testDir);
-        $this->filesystem->put($this->testDir . '/existing.txt', 'old content');
+        $this->filesystem->put($this->testDir.'/existing.txt', 'old content');
 
         $files = collect([
             [
@@ -120,7 +120,7 @@ describe('FileWriterService', function () {
         $this->service->write($files, true);
 
         // Backup should be created but then deleted after successful write
-        expect($this->filesystem->exists($this->testDir . '/new.txt'))->toBeTrue();
+        expect($this->filesystem->exists($this->testDir.'/new.txt'))->toBeTrue();
     });
 
     test('handles empty file collection', function () {
@@ -143,15 +143,15 @@ describe('FileWriterService', function () {
         $this->service->write($files, false);
 
         // Verify no .tmp files remain
-        $tmpFiles = $this->filesystem->glob($this->testDir . '/*.tmp');
+        $tmpFiles = $this->filesystem->glob($this->testDir.'/*.tmp');
         expect($tmpFiles)->toBeEmpty();
 
         // Verify final file exists
-        expect($this->filesystem->exists($this->testDir . '/atomic.bru'))->toBeTrue();
+        expect($this->filesystem->exists($this->testDir.'/atomic.bru'))->toBeTrue();
     });
 
     test('writes files with correct content', function () {
-        $content = <<<BRU
+        $content = <<<'BRU'
 meta {
   name: Test Request
   seq: 1
@@ -171,7 +171,7 @@ BRU;
 
         $this->service->write($files, false);
 
-        expect($this->filesystem->get($this->testDir . '/test.bru'))->toBe($content);
+        expect($this->filesystem->get($this->testDir.'/test.bru'))->toBe($content);
     });
 
     test('handles unicode content', function () {
@@ -186,7 +186,7 @@ BRU;
 
         $this->service->write($files, false);
 
-        expect($this->filesystem->get($this->testDir . '/unicode.bru'))->toBe($content);
+        expect($this->filesystem->get($this->testDir.'/unicode.bru'))->toBe($content);
     });
 
     test('cleans up temp files on error', function () {
@@ -205,7 +205,7 @@ BRU;
         }
 
         // Verify no .tmp files remain
-        $tmpFiles = $this->filesystem->glob($this->testDir . '/*.tmp');
+        $tmpFiles = $this->filesystem->glob($this->testDir.'/*.tmp');
         expect($tmpFiles)->toBeEmpty();
     });
 });

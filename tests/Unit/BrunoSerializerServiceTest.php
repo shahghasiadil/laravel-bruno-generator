@@ -22,7 +22,7 @@ beforeEach(function () {
         ],
     ]);
 
-    $this->basePath = sys_get_temp_dir() . '/test-bruno';
+    $this->basePath = sys_get_temp_dir().'/test-bruno';
 });
 
 describe('BrunoSerializerService', function () {

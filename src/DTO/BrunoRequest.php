@@ -7,10 +7,10 @@ namespace ShahGhasiAdil\LaravelBrunoGenerator\DTO;
 final readonly class BrunoRequest
 {
     /**
-     * @param array<string, string> $headers
-     * @param array<string, string> $queryParams
-     * @param array<string, string> $pathVariables
-     * @param array<int, string> $tags
+     * @param  array<string, string>  $headers
+     * @param  array<string, string>  $queryParams
+     * @param  array<string, string>  $pathVariables
+     * @param  array<int, string>  $tags
      */
     public function __construct(
         public string $name,
@@ -34,12 +34,12 @@ final readonly class BrunoRequest
 
     public function hasHeaders(): bool
     {
-        return !empty($this->headers);
+        return ! empty($this->headers);
     }
 
     public function hasQueryParams(): bool
     {
-        return !empty($this->queryParams);
+        return ! empty($this->queryParams);
     }
 
     public function hasBody(): bool
@@ -49,6 +49,6 @@ final readonly class BrunoRequest
 
     public function hasAuth(): bool
     {
-        return $this->auth !== null && !$this->auth->isNone();
+        return $this->auth !== null && ! $this->auth->isNone();
     }
 }
