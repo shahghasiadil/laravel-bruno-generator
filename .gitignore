@@ -1,13 +1,32 @@
-/vendor/
-/node_modules/
-/.idea/
-/.vscode/
-/build/
-.phpunit.cache/
-*.cache
-.phpunit.result.cache
-.php-cs-fixer.cache
+# Composer Related
 composer.lock
+/vendor
+
+# Frontend Assets
+/node_modules
+
+# Logs
+npm-debug.log
+yarn-error.log
+
+# Caches
+.phpunit.cache
+.phpunit.result.cache
+/build
+
+# IDE Helper
+_ide_helper.php
+_ide_helper_models.php
+.phpstorm.meta.php
+
+# Editors
+/.idea
+/.fleet
+/.vscode
+
+# Misc
 phpunit.xml
-.DS_Store
-Thumbs.db
+phpstan.neon
+testbench.yaml
+/docs
+/coverage
