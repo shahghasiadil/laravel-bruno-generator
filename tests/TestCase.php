@@ -9,6 +9,13 @@ use ShahGhasiAdil\LaravelBrunoGenerator\BrunoGeneratorServiceProvider;
 
 class TestCase extends Orchestra
 {
+    /**
+     * The latest response instance.
+     *
+     * @var mixed
+     */
+    protected static $latestResponse;
+
     protected function setUp(): void
     {
         parent::setUp();
