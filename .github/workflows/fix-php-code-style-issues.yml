@@ -1,4 +1,4 @@
-name: fix-php-code-style-issues
+name: Fix PHP code style issues
 
 on:
   push:
@@ -9,25 +9,20 @@ permissions:
   contents: write
 
 jobs:
-  pint:
+  php-code-styling:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.3'
-          coverage: none
+          ref: ${{ github.head_ref }}
 
-      - name: Install dependencies
-        run: composer update --prefer-dist --no-interaction
-
-      - name: Run Laravel Pint
-        run: vendor/bin/pint
+      - name: Fix PHP code style issues
+        uses: aglipanci/laravel-pint-action@2.6
 
       - name: Commit changes
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@v6
         with:
-          commit_message: Apply Laravel Pint fixes
+          commit_message: Fix styling
