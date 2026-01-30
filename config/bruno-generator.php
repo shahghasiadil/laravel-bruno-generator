@@ -11,6 +11,10 @@ return [
     | Configure where the Bruno collection will be generated and what it will
     | be named. The output path is relative to your Laravel project root.
     |
+    | Environment Variables:
+    | - BRUNO_OUTPUT_PATH: Custom output directory for collections
+    | - BRUNO_COLLECTION_NAME: Name displayed in Bruno application
+    |
     */
     'output_path' => env('BRUNO_OUTPUT_PATH', 'bruno/collections'),
     'collection_name' => env('BRUNO_COLLECTION_NAME', 'Laravel API'),
@@ -79,6 +83,9 @@ return [
     | Define how routes are organized into folders and how they are sorted
     | within the Bruno collection structure.
     |
+    | Environment Variables:
+    | - BRUNO_GROUP_BY: Grouping strategy (prefix|controller|tag|none)
+    |
     */
     'organization' => [
         // Group routes by: 'prefix', 'controller', 'tag', 'none'
@@ -104,6 +111,9 @@ return [
     |
     | Configure how HTTP requests are generated from your Laravel routes,
     | including body inference from FormRequests and parameter handling.
+    |
+    | Environment Variables:
+    | - BRUNO_INFER_BODY: Enable/disable FormRequest body inference (true|false)
     |
     */
     'request_generation' => [
@@ -145,6 +155,9 @@ return [
     | Configure authentication settings for the generated requests. The
     | package can detect auth middleware and add appropriate auth blocks.
     |
+    | Environment Variables:
+    | - BRUNO_AUTH_MODE: Authentication mode (none|bearer|basic|oauth2)
+    |
     */
     'auth' => [
         // Auth mode: 'none', 'bearer', 'basic', 'oauth2'
@@ -172,6 +185,29 @@ return [
     |
     | Define environment-specific variables that will be generated in
     | separate .bru files in the environments/ folder.
+    |
+    | Each environment creates a separate file (e.g., Local.bru, Staging.bru)
+    | that you can switch between in Bruno to test against different servers.
+    |
+    | Environment Variables:
+    | - APP_URL: Local development server URL
+    | - STAGING_URL: Staging server URL
+    | - PRODUCTION_URL: Production server URL
+    |
+    | You can add custom variables to each environment:
+    | 'apiKey' => env('STAGING_API_KEY', ''),
+    | 'tenantId' => 'tenant-123',
+    | 'debug' => true,
+    |
+    | These variables can then be used in Bruno with {{variableName}} syntax.
+    |
+    | Adding More Environments:
+    | You can add as many environments as needed (Dev, QA, UAT, etc.):
+    |
+    | 'Development' => [
+    |     'baseUrl' => env('DEV_URL', 'https://dev.example.com'),
+    |     'authToken' => '',
+    | ],
     |
     */
     'environments' => [
