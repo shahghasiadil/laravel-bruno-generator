@@ -20,6 +20,7 @@ use ShahGhasiAdil\LaravelBrunoGenerator\Services\FormRequestParserService;
 use ShahGhasiAdil\LaravelBrunoGenerator\Services\RouteDiscoveryService;
 use ShahGhasiAdil\LaravelBrunoGenerator\Services\RouteFilterService;
 use ShahGhasiAdil\LaravelBrunoGenerator\Services\RouteNormalizerService;
+use ShahGhasiAdil\LaravelBrunoGenerator\Services\Serializers\FormatSerializerFactory;
 
 class BrunoGeneratorServiceProvider extends ServiceProvider
 {
@@ -30,6 +31,10 @@ class BrunoGeneratorServiceProvider extends ServiceProvider
 
         // Bind supporting services
         $this->app->singleton(FormRequestParserService::class);
+
+        $this->app->singleton(FormatSerializerFactory::class, function ($app) {
+            return new FormatSerializerFactory(config('bruno-generator', []));
+        });
 
         // Bind contracts to implementations with proper config injection
         $this->app->singleton(RouteDiscoveryInterface::class, function ($app) {
@@ -50,7 +55,10 @@ class BrunoGeneratorServiceProvider extends ServiceProvider
         });
 
         $this->app->singleton(BrunoSerializerInterface::class, function ($app) {
-            return new BrunoSerializerService(config('bruno-generator', []));
+            return new BrunoSerializerService(
+                config('bruno-generator', []),
+                $app->make(FormatSerializerFactory::class)
+            );
         });
 
         $this->app->singleton(FileWriterInterface::class, FileWriterService::class);
@@ -87,6 +95,7 @@ class BrunoGeneratorServiceProvider extends ServiceProvider
             BrunoSerializerInterface::class,
             FileWriterInterface::class,
             FormRequestParserService::class,
+            FormatSerializerFactory::class,
         ];
     }
 }

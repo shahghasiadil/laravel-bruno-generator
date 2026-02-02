@@ -24,6 +24,7 @@ final class BrunoGenerateCommand extends Command
      * @var string
      */
     protected $signature = 'bruno:generate
+                            {--format=bru : Output format (bru or yaml)}
                             {--output= : Output directory}
                             {--name= : Collection name}
                             {--api-only : Include only API routes}
@@ -49,9 +50,7 @@ final class BrunoGenerateCommand extends Command
     public function __construct(
         private readonly RouteDiscoveryInterface $routeDiscovery,
         private readonly RouteFilterInterface $routeFilter,
-        private readonly RouteNormalizerInterface $routeNormalizer,
         private readonly CollectionOrganizerInterface $collectionOrganizer,
-        private readonly BrunoSerializerInterface $brunoSerializer,
         private readonly FileWriterInterface $fileWriter,
     ) {
         parent::__construct();
@@ -63,7 +62,13 @@ final class BrunoGenerateCommand extends Command
     public function handle(): int
     {
         try {
-            $this->info('🚀 Generating Bruno API collection...');
+            // Get format option and override config
+            $format = $this->option('format') ?? config('bruno-generator.output_format', 'bru');
+
+            // Override config temporarily for this command execution
+            Config::set('bruno-generator.output_format', $format);
+
+            $this->info("🚀 Generating Bruno collection in {$format} format...");
             $this->newLine();
 
             // Step 1: Discover routes
@@ -83,8 +88,14 @@ final class BrunoGenerateCommand extends Command
             $this->info("   {$routes->count()} routes after filtering");
 
             // Step 3: Normalize routes
+            // Re-create normalizer with updated config to respect format option for documentation
+            $routeNormalizer = new \ShahGhasiAdil\LaravelBrunoGenerator\Services\RouteNormalizerService(
+                app(\ShahGhasiAdil\LaravelBrunoGenerator\Services\FormRequestParserService::class),
+                config('bruno-generator', [])
+            );
+
             $this->info('⚙️  Normalizing routes...');
-            $requests = $this->routeNormalizer->normalize($routes);
+            $requests = $routeNormalizer->normalize($routes);
             $this->info("   Generated {$requests->count()} requests");
 
             // Step 4: Organize into collection
@@ -103,9 +114,17 @@ final class BrunoGenerateCommand extends Command
             $this->info("   Organized into {$structure->folders->count()} folders");
 
             // Step 5: Serialize to files
+            // Re-create serializer with updated config to respect format option
+            $updatedConfig = config('bruno-generator', []);
+            $factory = new \ShahGhasiAdil\LaravelBrunoGenerator\Services\Serializers\FormatSerializerFactory($updatedConfig);
+            $brunoSerializer = new \ShahGhasiAdil\LaravelBrunoGenerator\Services\BrunoSerializerService(
+                $updatedConfig,
+                $factory
+            );
+
             $outputPath = $this->getOutputPath();
-            $this->info('✏️  Serializing to .bru format...');
-            $files = $this->brunoSerializer->serialize($structure, $outputPath);
+            $this->info("✏️  Serializing to {$format} format...");
+            $files = $brunoSerializer->serialize($structure, $outputPath);
             $this->info("   Generated {$files->count()} files");
 
             // Step 6: Write files (or dry-run)
