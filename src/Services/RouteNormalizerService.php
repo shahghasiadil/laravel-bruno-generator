@@ -79,6 +79,7 @@ final class RouteNormalizerService implements RouteNormalizerInterface
         $docs = $this->extractPhpDocDocs($route);
         $tests = $this->generateTests($route, $method);
         $scripts = $this->generateScripts($route, $method);
+        $settings = $this->generateSettings();
 
         return new BrunoRequest(
             name: $name,
@@ -94,6 +95,7 @@ final class RouteNormalizerService implements RouteNormalizerInterface
             group: $group,
             controller: $route->controller,
             tags: $this->extractTags($route),
+            settings: $settings,
             preRequestScript: $scripts['pre'] ?? null,
             postResponseScript: $scripts['post'] ?? null,
             tests: $tests,
@@ -523,6 +525,20 @@ JS;
         }
 
         return ! empty($tests) ? implode("\n\n", $tests) : null;
+    }
+
+    /**
+     * Generate request settings.
+     */
+    private function generateSettings(): \ShahGhasiAdil\LaravelBrunoGenerator\DTO\RequestSettings
+    {
+        $settingsConfig = $this->config['advanced']['request_settings'] ?? [];
+
+        if ($settingsConfig === []) {
+            return \ShahGhasiAdil\LaravelBrunoGenerator\DTO\RequestSettings::default();
+        }
+
+        return \ShahGhasiAdil\LaravelBrunoGenerator\DTO\RequestSettings::fromConfig($settingsConfig);
     }
 
     /**
