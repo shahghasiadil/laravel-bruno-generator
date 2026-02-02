@@ -305,5 +305,13 @@ return [
             'indent_spaces' => 2,
             'inline_arrays' => false,
         ],
+
+        // Request settings (applies to both .bru and YAML formats)
+        'request_settings' => [
+            'encode_url' => true,
+            'timeout' => 0,
+            'follow_redirects' => true,
+            'max_redirects' => 5,
+        ],
     ],
 ];
