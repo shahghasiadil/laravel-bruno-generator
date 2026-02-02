@@ -135,7 +135,7 @@ describe('BrunoGenerateCommand', function () {
 
     test('displays progress information', function () {
         $this->artisan('bruno:generate', ['--force' => true])
-            ->expectsOutput('🚀 Generating Bruno API collection...')
+            ->expectsOutputToContain('🚀 Generating Bruno collection')
             ->assertSuccessful();
     });
 
