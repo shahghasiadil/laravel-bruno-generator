@@ -48,6 +48,11 @@ final class BruFormatSerializer implements FormatSerializerInterface
             $blocks[] = $this->formatBodyBlock($request->body);
         }
 
+        // Settings block
+        if ($request->settings !== null) {
+            $blocks[] = $this->formatSettingsBlock($request->settings);
+        }
+
         // Pre-request script
         if ($request->preRequestScript !== null) {
             $blocks[] = $this->formatScriptBlock('pre-request', $request->preRequestScript);
@@ -265,6 +270,24 @@ tests {
 {$indented}
 }
 BRU;
+    }
+
+    /**
+     * Format settings block.
+     */
+    private function formatSettingsBlock(\ShahGhasiAdil\LaravelBrunoGenerator\DTO\RequestSettings $settings): string
+    {
+        $lines = ['settings {'];
+
+        $settingsArray = $settings->toArray();
+        foreach ($settingsArray as $key => $value) {
+            $formattedValue = is_bool($value) ? ($value ? 'true' : 'false') : $value;
+            $lines[] = "  {$key}: {$formattedValue}";
+        }
+
+        $lines[] = '}';
+
+        return implode("\n", $lines);
     }
 
     /**
