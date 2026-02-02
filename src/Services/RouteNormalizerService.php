@@ -128,7 +128,11 @@ final class RouteNormalizerService implements RouteNormalizerInterface
      */
     private function generateDescription(RouteInfo $route): string
     {
-        $maxLength = $this->config['advanced']['max_description_length'] ?? 200;
+        // Format-aware description length
+        $format = $this->config['output_format'] ?? 'bru';
+        $maxLength = $format === 'yaml'
+            ? PHP_INT_MAX // No limit for YAML
+            : ($this->config['advanced']['max_description_length'] ?? 200);
 
         // Use route name as base description
         if ($route->name !== null) {
@@ -415,7 +419,15 @@ final class RouteNormalizerService implements RouteNormalizerInterface
             }
 
             // Parse and clean PHPDoc
-            return $this->parsePhpDoc($docComment);
+            $docs = $this->parsePhpDoc($docComment);
+
+            // Format-aware truncation
+            $format = $this->config['output_format'] ?? 'bru';
+            if ($format === 'yaml') {
+                return $docs; // Full Markdown for YAML
+            }
+
+            return Str::limit($docs, $this->config['advanced']['max_description_length'] ?? 200);
         } catch (\Throwable $e) {
             return null;
         }
