@@ -2,6 +2,30 @@
 
 All notable changes to `laravel-bruno-generator` will be documented in this file.
 
+## [Unreleased]
+
+### Added
+- Support for OpenCollection YAML format
+- `--format` option to choose output format (bru or yaml)
+- Environment variable: `BRUNO_OUTPUT_FORMAT`
+- Full Markdown documentation support for YAML format (no character limits)
+- New enum: `OutputFormat`
+- Format-specific serializers via strategy pattern
+- `FormatSerializerInterface` contract for extensible format support
+- `BruFormatSerializer` for .bru format generation
+- `YamlFormatSerializer` for OpenCollection YAML format generation
+- `FormatSerializerFactory` for creating format-specific serializers
+
+### Changed
+- Documentation length limit now only applies to .bru format
+- Refactored `BrunoSerializerService` to use factory pattern
+- Enhanced `RouteNormalizerService` with format-aware documentation extraction
+- Updated `BrunoGenerateCommand` with format option
+- File extensions now determined dynamically based on output format
+
+### Dependencies
+- Added `symfony/yaml` ^6.0|^7.0
+
 ## 1.0.0 - 2024-12-19
 
 ### Added

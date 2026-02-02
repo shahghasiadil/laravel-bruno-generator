@@ -36,6 +36,7 @@ The package supports several environment variables for quick configuration witho
 | `BRUNO_GROUP_BY` | Grouping strategy (prefix/controller/tag/none) | `prefix` |
 | `BRUNO_INFER_BODY` | Enable FormRequest body inference | `true` |
 | `BRUNO_AUTH_MODE` | Authentication mode (none/bearer/basic/oauth2) | `bearer` |
+| `BRUNO_OUTPUT_FORMAT` | Output file format (bru or yaml) | `bru` |
 | `APP_URL` | Local environment base URL | `http://localhost:8000` |
 | `STAGING_URL` | Staging environment base URL | `https://staging.example.com` |
 | `PRODUCTION_URL` | Production environment base URL | `https://api.example.com` |
@@ -57,6 +58,45 @@ APP_URL=http://localhost:8000
 STAGING_URL=https://staging.myapp.com
 PRODUCTION_URL=https://api.myapp.com
 ```
+
+## YAML Format Support
+
+This package supports both the traditional .bru format and the OpenCollection YAML format.
+
+### Choosing Output Format
+
+**Using .bru format (default)**:
+```bash
+php artisan bruno:generate
+```
+
+**Using YAML format**:
+```bash
+php artisan bruno:generate --format=yaml
+```
+
+**Via environment variables**:
+```env
+BRUNO_OUTPUT_FORMAT=yaml
+```
+
+### Format Comparison
+
+| Feature | .bru Format | YAML Format |
+|---------|-------------|-------------|
+| Documentation | Max 200 chars | Full Markdown, no limit |
+| Syntax Highlighting | Bruno-specific | Standard YAML |
+| Git Diffs | Good | Excellent |
+| Manual Editing | Moderate | Easy |
+| File Extension | .bru | .yaml |
+
+### YAML Format Benefits
+
+- **Better Git Integration** - Superior diffs and conflict resolution
+- **IDE Support** - Syntax highlighting in all modern IDEs
+- **Full Documentation** - No character limits on PHPDoc extraction
+- **Industry Standard** - YAML is widely understood
+- **Future-Ready** - OpenAPI export support coming soon
 
 ## Installation
 
