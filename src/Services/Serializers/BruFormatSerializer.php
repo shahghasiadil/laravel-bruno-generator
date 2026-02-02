@@ -12,8 +12,7 @@ use ShahGhasiAdil\LaravelBrunoGenerator\Enums\BodyType;
 
 final class BruFormatSerializer implements FormatSerializerInterface
 {
-    public function __construct()
-    {}
+    public function __construct() {}
 
     /**
      * Serialize .bru request file.

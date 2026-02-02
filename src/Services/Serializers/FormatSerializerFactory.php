@@ -19,7 +19,7 @@ final class FormatSerializerFactory
     public function make(OutputFormat $format): FormatSerializerInterface
     {
         return match ($format) {
-            OutputFormat::BRU => new BruFormatSerializer(),
+            OutputFormat::BRU => new BruFormatSerializer,
             OutputFormat::YAML => new YamlFormatSerializer($this->config),
         };
     }
