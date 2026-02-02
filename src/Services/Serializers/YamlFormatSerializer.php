@@ -73,6 +73,11 @@ final class YamlFormatSerializer implements FormatSerializerInterface
             $data['runtime'] = $runtime;
         }
 
+        // Add settings section
+        if ($request->settings !== null) {
+            $data['settings'] = $request->settings->toArray();
+        }
+
         // Add docs section (full Markdown, no truncation)
         if ($request->docs !== null) {
             $data['docs'] = $request->docs;
