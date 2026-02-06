@@ -28,7 +28,7 @@ final readonly class RequestSettings
 
     public static function default(): self
     {
-        return new self();
+        return new self;
     }
 
     /**
