@@ -8,7 +8,6 @@ use ShahGhasiAdil\LaravelBrunoGenerator\Contracts\FormatSerializerInterface;
 use ShahGhasiAdil\LaravelBrunoGenerator\DTO\AuthBlock;
 use ShahGhasiAdil\LaravelBrunoGenerator\DTO\BrunoRequest;
 use ShahGhasiAdil\LaravelBrunoGenerator\DTO\RequestBody;
-use ShahGhasiAdil\LaravelBrunoGenerator\Enums\AuthType;
 use ShahGhasiAdil\LaravelBrunoGenerator\Enums\BodyType;
 use Symfony\Component\Yaml\Yaml;
 

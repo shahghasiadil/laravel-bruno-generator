@@ -6,12 +6,10 @@ namespace ShahGhasiAdil\LaravelBrunoGenerator\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Config;
-use ShahGhasiAdil\LaravelBrunoGenerator\Contracts\BrunoSerializerInterface;
 use ShahGhasiAdil\LaravelBrunoGenerator\Contracts\CollectionOrganizerInterface;
 use ShahGhasiAdil\LaravelBrunoGenerator\Contracts\FileWriterInterface;
 use ShahGhasiAdil\LaravelBrunoGenerator\Contracts\RouteDiscoveryInterface;
 use ShahGhasiAdil\LaravelBrunoGenerator\Contracts\RouteFilterInterface;
-use ShahGhasiAdil\LaravelBrunoGenerator\Contracts\RouteNormalizerInterface;
 use ShahGhasiAdil\LaravelBrunoGenerator\Enums\GroupStrategy;
 use ShahGhasiAdil\LaravelBrunoGenerator\Exceptions\BrunoGeneratorException;
 use ShahGhasiAdil\LaravelBrunoGenerator\ValueObjects\FilterCriteria;
