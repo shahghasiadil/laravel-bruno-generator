@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace ShahGhasiAdil\LaravelBrunoGenerator\Tests;
 
+use Illuminate\Foundation\Application;
+use Illuminate\Support\ServiceProvider;
 use Orchestra\Testbench\TestCase as Orchestra;
 use ShahGhasiAdil\LaravelBrunoGenerator\BrunoGeneratorServiceProvider;
 
@@ -24,8 +26,8 @@ class TestCase extends Orchestra
     /**
      * Get package providers.
      *
-     * @param  \Illuminate\Foundation\Application  $app
-     * @return array<int, class-string<\Illuminate\Support\ServiceProvider>>
+     * @param  Application  $app
+     * @return array<int, class-string<ServiceProvider>>
      */
     protected function getPackageProviders($app): array
     {
@@ -37,7 +39,7 @@ class TestCase extends Orchestra
     /**
      * Define environment setup.
      *
-     * @param  \Illuminate\Foundation\Application  $app
+     * @param  Application  $app
      */
     public function getEnvironmentSetUp($app): void
     {

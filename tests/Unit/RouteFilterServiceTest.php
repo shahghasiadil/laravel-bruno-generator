@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Support\Collection;
 use ShahGhasiAdil\LaravelBrunoGenerator\DTO\RouteInfo;
 use ShahGhasiAdil\LaravelBrunoGenerator\Services\RouteFilterService;
 use ShahGhasiAdil\LaravelBrunoGenerator\ValueObjects\FilterCriteria;
@@ -340,6 +341,6 @@ describe('RouteFilterService', function () {
         $filtered = $this->service->filter($this->sampleRoutes, $criteria);
 
         // Should not throw exception, just skip invalid pattern
-        expect($filtered)->toBeInstanceOf(\Illuminate\Support\Collection::class);
+        expect($filtered)->toBeInstanceOf(Collection::class);
     });
 });

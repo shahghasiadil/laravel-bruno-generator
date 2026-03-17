@@ -8,6 +8,7 @@ use ShahGhasiAdil\LaravelBrunoGenerator\Contracts\FormatSerializerInterface;
 use ShahGhasiAdil\LaravelBrunoGenerator\DTO\AuthBlock;
 use ShahGhasiAdil\LaravelBrunoGenerator\DTO\BrunoRequest;
 use ShahGhasiAdil\LaravelBrunoGenerator\DTO\RequestBody;
+use ShahGhasiAdil\LaravelBrunoGenerator\DTO\RequestSettings;
 use ShahGhasiAdil\LaravelBrunoGenerator\Enums\BodyType;
 
 final class BruFormatSerializer implements FormatSerializerInterface
@@ -274,7 +275,7 @@ BRU;
     /**
      * Format settings block.
      */
-    private function formatSettingsBlock(\ShahGhasiAdil\LaravelBrunoGenerator\DTO\RequestSettings $settings): string
+    private function formatSettingsBlock(RequestSettings $settings): string
     {
         $lines = ['settings {'];
 

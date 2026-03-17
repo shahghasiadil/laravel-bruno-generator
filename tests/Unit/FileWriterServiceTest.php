@@ -200,7 +200,7 @@ BRU;
 
         try {
             $this->service->write($files, false);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             // Ignore errors
         }
 

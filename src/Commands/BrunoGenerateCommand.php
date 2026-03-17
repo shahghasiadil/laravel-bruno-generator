@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace ShahGhasiAdil\LaravelBrunoGenerator\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Config;
 use ShahGhasiAdil\LaravelBrunoGenerator\Contracts\CollectionOrganizerInterface;
 use ShahGhasiAdil\LaravelBrunoGenerator\Contracts\FileWriterInterface;
@@ -12,6 +13,11 @@ use ShahGhasiAdil\LaravelBrunoGenerator\Contracts\RouteDiscoveryInterface;
 use ShahGhasiAdil\LaravelBrunoGenerator\Contracts\RouteFilterInterface;
 use ShahGhasiAdil\LaravelBrunoGenerator\Enums\GroupStrategy;
 use ShahGhasiAdil\LaravelBrunoGenerator\Exceptions\BrunoGeneratorException;
+use ShahGhasiAdil\LaravelBrunoGenerator\Services\BrunoSerializerService;
+use ShahGhasiAdil\LaravelBrunoGenerator\Services\CollectionOrganizerService;
+use ShahGhasiAdil\LaravelBrunoGenerator\Services\FormRequestParserService;
+use ShahGhasiAdil\LaravelBrunoGenerator\Services\RouteNormalizerService;
+use ShahGhasiAdil\LaravelBrunoGenerator\Services\Serializers\FormatSerializerFactory;
 use ShahGhasiAdil\LaravelBrunoGenerator\ValueObjects\FilterCriteria;
 
 final class BrunoGenerateCommand extends Command
@@ -87,8 +93,8 @@ final class BrunoGenerateCommand extends Command
 
             // Step 3: Normalize routes
             // Re-create normalizer with updated config to respect format option for documentation
-            $routeNormalizer = new \ShahGhasiAdil\LaravelBrunoGenerator\Services\RouteNormalizerService(
-                app(\ShahGhasiAdil\LaravelBrunoGenerator\Services\FormRequestParserService::class),
+            $routeNormalizer = new RouteNormalizerService(
+                app(FormRequestParserService::class),
                 config('bruno-generator', [])
             );
 
@@ -104,7 +110,7 @@ final class BrunoGenerateCommand extends Command
             if ($customName = $this->option('name')) {
                 $config = config('bruno-generator', []);
                 $config['collection_name'] = $customName;
-                $collectionOrganizer = new \ShahGhasiAdil\LaravelBrunoGenerator\Services\CollectionOrganizerService($config);
+                $collectionOrganizer = new CollectionOrganizerService($config);
             }
 
             $this->info('📁 Organizing collection...');
@@ -114,8 +120,8 @@ final class BrunoGenerateCommand extends Command
             // Step 5: Serialize to files
             // Re-create serializer with updated config to respect format option
             $updatedConfig = config('bruno-generator', []);
-            $factory = new \ShahGhasiAdil\LaravelBrunoGenerator\Services\Serializers\FormatSerializerFactory($updatedConfig);
-            $brunoSerializer = new \ShahGhasiAdil\LaravelBrunoGenerator\Services\BrunoSerializerService(
+            $factory = new FormatSerializerFactory($updatedConfig);
+            $brunoSerializer = new BrunoSerializerService(
                 $updatedConfig,
                 $factory
             );
@@ -234,7 +240,7 @@ final class BrunoGenerateCommand extends Command
     /**
      * Display dry-run information.
      *
-     * @param  \Illuminate\Support\Collection  $files
+     * @param  Collection  $files
      */
     private function displayDryRun($files, $structure): void
     {

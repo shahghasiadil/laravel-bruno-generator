@@ -14,7 +14,7 @@ beforeEach(function () {
     $routes = $router->getRoutes();
 
     // Clear routes using reflection to access protected property
-    $reflection = new \ReflectionClass($routes);
+    $reflection = new ReflectionClass($routes);
     $property = $reflection->getProperty('routes');
     $property->setAccessible(true);
     $property->setValue($routes, []);

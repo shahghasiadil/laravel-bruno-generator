@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
+use Illuminate\Foundation\Http\FormRequest;
 use ShahGhasiAdil\LaravelBrunoGenerator\Enums\BodyType;
+use ShahGhasiAdil\LaravelBrunoGenerator\Exceptions\FormRequestParseException;
 use ShahGhasiAdil\LaravelBrunoGenerator\Services\FormRequestParserService;
 use ShahGhasiAdil\LaravelBrunoGenerator\Tests\Fixtures\SampleFormRequest;
 
@@ -151,17 +153,17 @@ describe('FormRequestParserService', function () {
     test('returns null for non-existent class', function () {
         expect(function () {
             $this->service->parse('NonExistentClass');
-        })->toThrow(ShahGhasiAdil\LaravelBrunoGenerator\Exceptions\FormRequestParseException::class);
+        })->toThrow(FormRequestParseException::class);
     });
 
     test('returns null for non-FormRequest class', function () {
         expect(function () {
-            $this->service->parse(\stdClass::class);
-        })->toThrow(ShahGhasiAdil\LaravelBrunoGenerator\Exceptions\FormRequestParseException::class);
+            $this->service->parse(stdClass::class);
+        })->toThrow(FormRequestParseException::class);
     });
 
     test('infers field types from field names when rules are generic', function () {
-        $class = new class extends \Illuminate\Foundation\Http\FormRequest
+        $class = new class extends FormRequest
         {
             public function rules(): array
             {
@@ -182,7 +184,7 @@ describe('FormRequestParserService', function () {
     });
 
     test('handles array rules format', function () {
-        $class = new class extends \Illuminate\Foundation\Http\FormRequest
+        $class = new class extends FormRequest
         {
             public function rules(): array
             {
@@ -201,7 +203,7 @@ describe('FormRequestParserService', function () {
     });
 
     test('respects min value in rules', function () {
-        $class = new class extends \Illuminate\Foundation\Http\FormRequest
+        $class = new class extends FormRequest
         {
             public function rules(): array
             {
@@ -219,7 +221,7 @@ describe('FormRequestParserService', function () {
     });
 
     test('handles max length in string rules', function () {
-        $class = new class extends \Illuminate\Foundation\Http\FormRequest
+        $class = new class extends FormRequest
         {
             public function rules(): array
             {

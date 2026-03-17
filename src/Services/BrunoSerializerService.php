@@ -12,6 +12,7 @@ use ShahGhasiAdil\LaravelBrunoGenerator\DTO\BrunoRequest;
 use ShahGhasiAdil\LaravelBrunoGenerator\DTO\CollectionStructure;
 use ShahGhasiAdil\LaravelBrunoGenerator\DTO\FolderNode;
 use ShahGhasiAdil\LaravelBrunoGenerator\Enums\FileType;
+use ShahGhasiAdil\LaravelBrunoGenerator\Enums\OutputFormat;
 use ShahGhasiAdil\LaravelBrunoGenerator\Services\Serializers\FormatSerializerFactory;
 use ShahGhasiAdil\LaravelBrunoGenerator\ValueObjects\FileContent;
 use ShahGhasiAdil\LaravelBrunoGenerator\ValueObjects\FilePath;
@@ -31,7 +32,7 @@ final class BrunoSerializerService implements BrunoSerializerInterface
         $factory = $factory ?? new FormatSerializerFactory($config);
 
         // Determine output format from config
-        $outputFormat = \ShahGhasiAdil\LaravelBrunoGenerator\Enums\OutputFormat::fromString(
+        $outputFormat = OutputFormat::fromString(
             $this->config['output_format'] ?? 'bru'
         );
 

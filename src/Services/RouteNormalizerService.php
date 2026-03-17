@@ -10,6 +10,7 @@ use ShahGhasiAdil\LaravelBrunoGenerator\Contracts\RouteNormalizerInterface;
 use ShahGhasiAdil\LaravelBrunoGenerator\DTO\AuthBlock;
 use ShahGhasiAdil\LaravelBrunoGenerator\DTO\BrunoRequest;
 use ShahGhasiAdil\LaravelBrunoGenerator\DTO\RequestBody;
+use ShahGhasiAdil\LaravelBrunoGenerator\DTO\RequestSettings;
 use ShahGhasiAdil\LaravelBrunoGenerator\DTO\RouteInfo;
 use ShahGhasiAdil\LaravelBrunoGenerator\Enums\AuthType;
 use ShahGhasiAdil\LaravelBrunoGenerator\Enums\BodyType;
@@ -530,15 +531,15 @@ JS;
     /**
      * Generate request settings.
      */
-    private function generateSettings(): \ShahGhasiAdil\LaravelBrunoGenerator\DTO\RequestSettings
+    private function generateSettings(): RequestSettings
     {
         $settingsConfig = $this->config['advanced']['request_settings'] ?? [];
 
         if ($settingsConfig === []) {
-            return \ShahGhasiAdil\LaravelBrunoGenerator\DTO\RequestSettings::default();
+            return RequestSettings::default();
         }
 
-        return \ShahGhasiAdil\LaravelBrunoGenerator\DTO\RequestSettings::fromConfig($settingsConfig);
+        return RequestSettings::fromConfig($settingsConfig);
     }
 
     /**
