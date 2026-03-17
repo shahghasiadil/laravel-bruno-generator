@@ -79,6 +79,7 @@ final class RouteNormalizerService implements RouteNormalizerInterface
         $docs = $this->extractPhpDocDocs($route);
         $tests = $this->generateTests($route, $method);
         $scripts = $this->generateScripts($route, $method);
+        $settings = $this->generateSettings();
 
         return new BrunoRequest(
             name: $name,
@@ -94,6 +95,7 @@ final class RouteNormalizerService implements RouteNormalizerInterface
             group: $group,
             controller: $route->controller,
             tags: $this->extractTags($route),
+            settings: $settings,
             preRequestScript: $scripts['pre'] ?? null,
             postResponseScript: $scripts['post'] ?? null,
             tests: $tests,
@@ -128,7 +130,11 @@ final class RouteNormalizerService implements RouteNormalizerInterface
      */
     private function generateDescription(RouteInfo $route): string
     {
-        $maxLength = $this->config['advanced']['max_description_length'] ?? 200;
+        // Format-aware description length
+        $format = $this->config['output_format'] ?? 'bru';
+        $maxLength = $format === 'yaml'
+            ? PHP_INT_MAX // No limit for YAML
+            : ($this->config['advanced']['max_description_length'] ?? 200);
 
         // Use route name as base description
         if ($route->name !== null) {
@@ -415,7 +421,15 @@ final class RouteNormalizerService implements RouteNormalizerInterface
             }
 
             // Parse and clean PHPDoc
-            return $this->parsePhpDoc($docComment);
+            $docs = $this->parsePhpDoc($docComment);
+
+            // Format-aware truncation
+            $format = $this->config['output_format'] ?? 'bru';
+            if ($format === 'yaml') {
+                return $docs; // Full Markdown for YAML
+            }
+
+            return Str::limit($docs, $this->config['advanced']['max_description_length'] ?? 200);
         } catch (\Throwable $e) {
             return null;
         }
@@ -511,6 +525,20 @@ JS;
         }
 
         return ! empty($tests) ? implode("\n\n", $tests) : null;
+    }
+
+    /**
+     * Generate request settings.
+     */
+    private function generateSettings(): \ShahGhasiAdil\LaravelBrunoGenerator\DTO\RequestSettings
+    {
+        $settingsConfig = $this->config['advanced']['request_settings'] ?? [];
+
+        if ($settingsConfig === []) {
+            return \ShahGhasiAdil\LaravelBrunoGenerator\DTO\RequestSettings::default();
+        }
+
+        return \ShahGhasiAdil\LaravelBrunoGenerator\DTO\RequestSettings::fromConfig($settingsConfig);
     }
 
     /**

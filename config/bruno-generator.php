@@ -14,11 +14,12 @@ return [
     | Environment Variables:
     | - BRUNO_OUTPUT_PATH: Custom output directory for collections
     | - BRUNO_COLLECTION_NAME: Name displayed in Bruno application
+    | - BRUNO_OUTPUT_FORMAT: Output file format (bru or yaml)
     |
     */
     'output_path' => env('BRUNO_OUTPUT_PATH', 'bruno/collections'),
     'collection_name' => env('BRUNO_COLLECTION_NAME', 'Laravel API'),
-    'bruno_version' => '1',
+    'output_format' => env('BRUNO_OUTPUT_FORMAT', 'bru'),
 
     /*
     |--------------------------------------------------------------------------
@@ -267,7 +268,7 @@ return [
         // Include route documentation from PHPDoc
         'include_phpdoc_docs' => true,
 
-        // Maximum description length
+        // Maximum description length (only applies to .bru format; YAML has no limit)
         'max_description_length' => 200,
 
         // File naming strategy: 'descriptive', 'sequential'
@@ -297,6 +298,20 @@ return [
             'status_check' => true,
             'response_time' => false,
             'schema_validation' => false,
+        ],
+
+        // YAML format options (only applies to YAML output format)
+        'yaml_options' => [
+            'indent_spaces' => 2,
+            'inline_arrays' => false,
+        ],
+
+        // Request settings (applies to both .bru and YAML formats)
+        'request_settings' => [
+            'encode_url' => true,
+            'timeout' => 0,
+            'follow_redirects' => true,
+            'max_redirects' => 5,
         ],
     ],
 ];

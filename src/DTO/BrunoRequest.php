@@ -26,6 +26,7 @@ final readonly class BrunoRequest
         public ?string $group,
         public ?string $controller,
         public array $tags,
+        public ?RequestSettings $settings = null,
         public ?string $preRequestScript = null,
         public ?string $postResponseScript = null,
         public ?string $tests = null,
