@@ -75,7 +75,7 @@ final class BrunoGenerateCommand extends Command
             $outputPath = $this->getOutputPath();
 
             // Write files (or dry-run)
-            if ($this->option('dry-run')) {
+            if ((bool) $this->option('dry-run')) {
                 $this->displayDryRun($files, $structure);
 
                 return self::SUCCESS;

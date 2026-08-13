@@ -54,7 +54,8 @@ trait BuildsBrunoCollection
         $groupStrategy = $this->determineGroupStrategy();
 
         $collectionOrganizer = $this->collectionOrganizer;
-        if ($customName = $this->option('name')) {
+        $customName = $this->option('name');
+        if (is_string($customName) && $customName !== '') {
             $config = config('bruno-generator', []);
             $config['collection_name'] = $customName;
             $collectionOrganizer = new CollectionOrganizerService($config);
@@ -78,29 +79,33 @@ trait BuildsBrunoCollection
     {
         $config = Config::get('bruno-generator.route_discovery', []);
 
-        if ($this->option('api-only')) {
+        if ((bool) $this->option('api-only')) {
             $config['auto_detect_api'] = true;
         }
 
-        if ($this->option('prefix')) {
-            $config['include_prefixes'] = explode(',', $this->option('prefix'));
+        $prefix = $this->option('prefix');
+        if (is_string($prefix) && $prefix !== '') {
+            $config['include_prefixes'] = explode(',', $prefix);
         }
 
-        if ($this->option('exclude-prefix')) {
+        $excludePrefix = $this->option('exclude-prefix');
+        if (is_string($excludePrefix) && $excludePrefix !== '') {
             $config['exclude_prefixes'] = array_merge(
                 $config['exclude_prefixes'] ?? [],
-                explode(',', $this->option('exclude-prefix')),
+                explode(',', $excludePrefix),
             );
         }
 
-        if ($this->option('middleware')) {
-            $config['include_middleware'] = explode(',', $this->option('middleware'));
+        $middleware = $this->option('middleware');
+        if (is_string($middleware) && $middleware !== '') {
+            $config['include_middleware'] = explode(',', $middleware);
         }
 
-        if ($this->option('exclude-middleware')) {
+        $excludeMiddleware = $this->option('exclude-middleware');
+        if (is_string($excludeMiddleware) && $excludeMiddleware !== '') {
             $config['exclude_middleware'] = array_merge(
                 $config['exclude_middleware'] ?? [],
-                explode(',', $this->option('exclude-middleware')),
+                explode(',', $excludeMiddleware),
             );
         }
 
