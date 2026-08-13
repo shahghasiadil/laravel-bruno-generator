@@ -72,7 +72,7 @@ final class RouteNormalizerService implements RouteNormalizerInterface
         $description = $this->generateDescription($route);
         $url = $this->buildUrl($route);
         $headers = $this->buildHeaders($route, $method);
-        $queryParams = $this->extractQueryParams($route);
+        $queryParams = $this->extractQueryParams($route, $method);
         $pathVariables = $this->extractPathVariables($route);
         $body = $this->parseRequestBody($route, $method);
         $auth = $this->determineAuth($route);
@@ -164,15 +164,23 @@ final class RouteNormalizerService implements RouteNormalizerInterface
     private function buildUrl(RouteInfo $route): string
     {
         $baseUrlVar = $this->config['variables']['base_url_var'] ?? 'baseUrl';
-        $url = '{{'.$baseUrlVar.'}}/'.ltrim($route->uri, '/');
+        $uri = ltrim($route->uri, '/');
 
-        // Convert route parameters to Bruno variables
-        // Use negative lookbehind/lookahead to avoid matching {{baseUrl}}
         if ($this->config['request_generation']['parameterize_route_params'] ?? true) {
-            $url = preg_replace('/(?<!\{)\{([^}?]+)\??\}(?!\})/', '{{$1}}', $url);
+            $uri = $this->pathParamStyle() === 'double_brace'
+                ? (preg_replace('/\{([^}?]+)\??\}/', '{{$1}}', $uri) ?? $uri)
+                : (preg_replace('/\{([^}?]+)\??\}/', ':$1', $uri) ?? $uri);
         }
 
-        return $url;
+        return '{{'.$baseUrlVar.'}}/'.$uri;
+    }
+
+    /**
+     * Determine configured path parameter style.
+     */
+    private function pathParamStyle(): string
+    {
+        return $this->config['request_generation']['path_param_style'] ?? 'colon';
     }
 
     /**
@@ -197,23 +205,40 @@ final class RouteNormalizerService implements RouteNormalizerInterface
     }
 
     /**
-     * Extract query parameters from route.
+     * Extract query parameters from route, inferred from FormRequest rules on
+     * GET/HEAD routes.
      *
      * @return array<string, string>
      */
-    private function extractQueryParams(RouteInfo $route): array
+    private function extractQueryParams(RouteInfo $route, string $method): array
     {
-        // This will be enhanced when FormRequest parsing is added
-        return [];
+        if (! ($this->config['request_generation']['generate_query_params'] ?? true)) {
+            return [];
+        }
+
+        if (! in_array(strtoupper($method), ['GET', 'HEAD'], true)) {
+            return [];
+        }
+
+        return $this->formRequestParser->parseQueryParamsFromRoute($route);
     }
 
     /**
-     * Extract path variables from route parameters.
+     * Extract path variables from route parameters, when the colon path
+     * parameter style is in use.
      *
      * @return array<string, string>
      */
     private function extractPathVariables(RouteInfo $route): array
     {
+        if (! ($this->config['request_generation']['parameterize_route_params'] ?? true)) {
+            return [];
+        }
+
+        if ($this->pathParamStyle() === 'double_brace') {
+            return [];
+        }
+
         $variables = [];
 
         foreach ($route->parameters as $paramName => $paramPattern) {

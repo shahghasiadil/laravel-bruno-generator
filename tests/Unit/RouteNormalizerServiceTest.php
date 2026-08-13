@@ -6,6 +6,7 @@ use ShahGhasiAdil\LaravelBrunoGenerator\DTO\RouteInfo;
 use ShahGhasiAdil\LaravelBrunoGenerator\Enums\AuthType;
 use ShahGhasiAdil\LaravelBrunoGenerator\Services\FormRequestParserService;
 use ShahGhasiAdil\LaravelBrunoGenerator\Services\RouteNormalizerService;
+use ShahGhasiAdil\LaravelBrunoGenerator\Tests\Fixtures\SampleController;
 
 beforeEach(function () {
     $this->formRequestParser = new FormRequestParserService;
@@ -70,7 +71,7 @@ describe('RouteNormalizerService', function () {
         expect($requests->first()->url)->toContain('{{baseUrl}}/api/users');
     });
 
-    test('converts route parameters to Bruno variables', function () {
+    test('converts route parameters to Bruno path params by default', function () {
         $routes = collect([
             new RouteInfo(
                 uri: 'api/users/{id}',
@@ -88,8 +89,56 @@ describe('RouteNormalizerService', function () {
 
         $requests = $this->service->normalize($routes);
 
-        expect($requests->first()->url)->toContain('{{baseUrl}}/api/users/{{id}}');
+        expect($requests->first()->url)->toContain('{{baseUrl}}/api/users/:id');
         expect($requests->first()->pathVariables)->toHaveKey('id');
+    });
+
+    test('supports the legacy double_brace path param style', function () {
+        $config = $this->config;
+        $config['request_generation']['path_param_style'] = 'double_brace';
+        $service = new RouteNormalizerService($this->formRequestParser, $config);
+
+        $routes = collect([
+            new RouteInfo(
+                uri: 'api/users/{id}',
+                methods: ['GET'],
+                name: 'users.show',
+                action: 'UserController@show',
+                middleware: ['api'],
+                domain: null,
+                parameters: ['id' => 'id'],
+                controller: 'UserController',
+                controllerMethod: 'show',
+                isFallback: false,
+            ),
+        ]);
+
+        $requests = $service->normalize($routes);
+
+        expect($requests->first()->url)->toContain('{{baseUrl}}/api/users/{{id}}');
+        expect($requests->first()->pathVariables)->toBe([]);
+    });
+
+    test('generates query params from FormRequest rules on GET routes', function () {
+        $routes = collect([
+            new RouteInfo(
+                uri: 'api/users',
+                methods: ['GET'],
+                name: 'users.index',
+                action: SampleController::class.'@store',
+                middleware: ['api'],
+                domain: null,
+                parameters: [],
+                controller: SampleController::class,
+                controllerMethod: 'store',
+                isFallback: false,
+            ),
+        ]);
+
+        $requests = $this->service->normalize($routes);
+
+        expect($requests->first()->queryParams)->toHaveKey('name');
+        expect($requests->first()->queryParams)->not->toHaveKey('tags');
     });
 
     test('generates request per HTTP method', function () {

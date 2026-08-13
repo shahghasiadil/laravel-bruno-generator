@@ -117,6 +117,7 @@ final class CollectionOrganizerService implements CollectionOrganizerInterface
                 group: $request->group,
                 controller: $request->controller,
                 tags: $request->tags,
+                settings: $request->settings,
                 preRequestScript: $request->preRequestScript,
                 postResponseScript: $request->postResponseScript,
                 tests: $request->tests,

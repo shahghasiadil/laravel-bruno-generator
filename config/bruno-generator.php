@@ -124,10 +124,15 @@ return [
         // Generate example values for body fields
         'generate_example_values' => true,
 
-        // Convert route parameters to Bruno variables ({id} -> {{id}})
+        // Convert Laravel route parameters ({id}) into Bruno path parameters
         'parameterize_route_params' => true,
 
-        // Generate query parameter examples
+        // Path parameter style when parameterize_route_params is enabled:
+        // - 'colon': /users/:id + a params:path block (Bruno's native path param convention)
+        // - 'double_brace': /users/{{id}} (legacy; requires the variable to be defined elsewhere)
+        'path_param_style' => 'colon',
+
+        // Generate query parameter examples from FormRequest rules on GET/HEAD routes
         'generate_query_params' => true,
 
         // Include common headers

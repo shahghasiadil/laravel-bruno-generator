@@ -13,7 +13,7 @@ enum OutputFormat: string
     {
         return match ($this) {
             self::BRU => '.bru',
-            self::YAML => '.yaml',
+            self::YAML => '.yml',
         };
     }
 

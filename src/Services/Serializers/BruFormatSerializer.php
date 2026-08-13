@@ -23,14 +23,19 @@ final class BruFormatSerializer implements FormatSerializerInterface
         $blocks = [];
 
         // Meta block (required)
-        $blocks[] = $this->formatMetaBlock($request->name, $request->description, $request->sequence);
+        $blocks[] = $this->formatMetaBlock($request->name, $request->sequence, $request->tags);
 
         // HTTP method block (required)
         $blocks[] = $this->formatMethodBlock($request->method, $request->url, $request->body, $request->auth);
 
+        // Path params block
+        if ($request->hasPathVariables()) {
+            $blocks[] = $this->formatParamsBlock('path', $request->pathVariables);
+        }
+
         // Query params block
         if ($request->hasQueryParams()) {
-            $blocks[] = $this->formatParamsBlock($request->queryParams);
+            $blocks[] = $this->formatParamsBlock('query', $request->queryParams);
         }
 
         // Headers block
@@ -101,16 +106,24 @@ final class BruFormatSerializer implements FormatSerializerInterface
 
     /**
      * Format meta block.
+     *
+     * @param  array<int, string>  $tags
      */
-    private function formatMetaBlock(string $name, string $desc, int $seq): string
+    private function formatMetaBlock(string $name, int $seq, array $tags = []): string
     {
-        return <<<BRU
-meta {
-  name: {$name}
-  type: http
-  seq: {$seq}
-}
-BRU;
+        $lines = ['meta {', "  name: {$name}", '  type: http', "  seq: {$seq}"];
+
+        if ($tags !== []) {
+            $lines[] = '  tags: [';
+            foreach ($tags as $tag) {
+                $lines[] = "    {$tag}";
+            }
+            $lines[] = '  ]';
+        }
+
+        $lines[] = '}';
+
+        return implode("\n", $lines);
     }
 
     /**
@@ -142,13 +155,13 @@ BRU;
     }
 
     /**
-     * Format query params block.
+     * Format a params block (query or path).
      *
      * @param  array<string, string>  $params
      */
-    private function formatParamsBlock(array $params): string
+    private function formatParamsBlock(string $type, array $params): string
     {
-        $lines = ['params:query {'];
+        $lines = ["params:{$type} {"];
 
         foreach ($params as $key => $value) {
             $lines[] = "  {$key}: {$value}";

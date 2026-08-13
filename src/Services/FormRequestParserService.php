@@ -48,6 +48,80 @@ final class FormRequestParserService
     }
 
     /**
+     * Infer flat query parameters from a route's FormRequest rules.
+     *
+     * @return array<string, string>
+     */
+    public function parseQueryParamsFromRoute(RouteInfo $route): array
+    {
+        if ($route->controller === null || $route->controllerMethod === null) {
+            return [];
+        }
+
+        try {
+            $formRequestClass = $this->findFormRequestClass($route);
+
+            if ($formRequestClass === null) {
+                return [];
+            }
+
+            return $this->parseQueryParams($formRequestClass);
+        } catch (\Throwable $e) {
+            return [];
+        }
+    }
+
+    /**
+     * Convert a FormRequest's top-level, non-array rules into query params.
+     *
+     * @return array<string, string>
+     */
+    public function parseQueryParams(string $formRequestClass): array
+    {
+        if (! class_exists($formRequestClass) || ! is_subclass_of($formRequestClass, FormRequest::class)) {
+            return [];
+        }
+
+        try {
+            $reflection = new ReflectionClass($formRequestClass);
+            $instance = $reflection->newInstanceWithoutConstructor();
+
+            $rulesMethod = $reflection->getMethod('rules');
+            $rulesMethod->setAccessible(true);
+            $rules = $rulesMethod->invoke($instance);
+
+            if (! is_array($rules) || empty($rules)) {
+                return [];
+            }
+
+            $params = [];
+
+            foreach ($rules as $field => $fieldRules) {
+                // Skip nested/array notation fields; query params are flat.
+                if (! is_string($field) || str_contains($field, '.')) {
+                    continue;
+                }
+
+                if (! $this->shouldIncludeField($fieldRules)) {
+                    continue;
+                }
+
+                $value = $this->generateExampleValue($field, $fieldRules);
+
+                if (is_array($value)) {
+                    continue;
+                }
+
+                $params[$field] = is_bool($value) ? ($value ? 'true' : 'false') : (string) $value;
+            }
+
+            return $params;
+        } catch (\Throwable $e) {
+            return [];
+        }
+    }
+
+    /**
      * Find FormRequest class used by controller method.
      */
     private function findFormRequestClass(RouteInfo $route): ?string

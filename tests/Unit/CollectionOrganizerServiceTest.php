@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use ShahGhasiAdil\LaravelBrunoGenerator\DTO\BrunoRequest;
+use ShahGhasiAdil\LaravelBrunoGenerator\DTO\RequestSettings;
 use ShahGhasiAdil\LaravelBrunoGenerator\Enums\GroupStrategy;
 use ShahGhasiAdil\LaravelBrunoGenerator\Services\CollectionOrganizerService;
 
@@ -357,5 +358,32 @@ describe('CollectionOrganizerService', function () {
 
         $names = $structure->rootRequests->pluck('name')->all();
         expect($names)->toBe(['Apple', 'Zebra']);
+    });
+
+    test('preserves request settings when reassigning sequences', function () {
+        $settings = RequestSettings::fromConfig(['timeout' => 5000]);
+
+        $requests = collect([
+            new BrunoRequest(
+                name: 'Get Users',
+                description: 'Test',
+                sequence: 1,
+                method: 'GET',
+                url: '{{baseUrl}}/api/users',
+                headers: [],
+                queryParams: [],
+                pathVariables: [],
+                body: null,
+                auth: null,
+                group: null,
+                controller: null,
+                tags: [],
+                settings: $settings,
+            ),
+        ]);
+
+        $structure = $this->service->organize($requests, GroupStrategy::NONE);
+
+        expect($structure->rootRequests->first()->settings)->toBe($settings);
     });
 });
