@@ -469,7 +469,7 @@ final class FormRequestParserService
                 return (int) $matches[1];
             }
 
-            if (preg_match('/between:(\d+),\d+/', $rule, $matches)) {
+            if (preg_match('/between:(\d+),\d+/', $rule, $matches) === 1) {
                 return (int) $matches[1];
             }
         }
@@ -489,7 +489,7 @@ final class FormRequestParserService
                 return str_contains($matches[1], '.') ? (float) $matches[1] : (int) $matches[1];
             }
 
-            if (preg_match('/between:([\d.]+),[\d.]+/', $rule, $matches)) {
+            if (preg_match('/between:([\d.]+),[\d.]+/', $rule, $matches) === 1) {
                 return str_contains($matches[1], '.') ? (float) $matches[1] : (int) $matches[1];
             }
         }
