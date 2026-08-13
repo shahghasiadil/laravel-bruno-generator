@@ -83,32 +83,19 @@ final class CollectionOrganizerService implements CollectionOrganizerInterface
 
         $mode = $this->config['auth']['mode'] ?? 'bearer';
 
-        $type = match ($mode) {
-            'bearer' => AuthType::BEARER,
-            'basic' => AuthType::BASIC,
-            'oauth2' => AuthType::OAUTH2,
-            default => AuthType::NONE,
-        };
-
-        if ($type === AuthType::NONE) {
-            return null;
-        }
-
-        $config = match ($type) {
-            AuthType::BEARER => [
+        return match ($mode) {
+            'bearer' => new AuthBlock(AuthType::BEARER, [
                 'token' => '{{'.($this->config['auth']['bearer_token_var'] ?? 'authToken').'}}',
-            ],
-            AuthType::BASIC => [
+            ]),
+            'basic' => new AuthBlock(AuthType::BASIC, [
                 'username' => '{{username}}',
                 'password' => '{{password}}',
-            ],
-            AuthType::OAUTH2 => [
+            ]),
+            'oauth2' => new AuthBlock(AuthType::OAUTH2, [
                 'accessToken' => '{{accessToken}}',
-            ],
-            default => [],
+            ]),
+            default => null,
         };
-
-        return new AuthBlock(type: $type, config: $config);
     }
 
     /**

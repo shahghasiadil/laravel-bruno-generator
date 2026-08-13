@@ -1,19 +1,19 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Only booleans are allowed in a negated boolean, array\|bool\|string\|null given\.$#'
+			message: '#^Only booleans are allowed in a negated boolean, array\|bool\|float\|int\|string\|null given\.$#'
 			identifier: booleanNot.exprNotBoolean
 			count: 1
 			path: src/Commands/BrunoClearCommand.php
 
 		-
-			message: '#^Only booleans are allowed in an if condition, array\|bool\|string\|null given\.$#'
+			message: '#^Only booleans are allowed in an if condition, array\|bool\|float\|int\|string\|null given\.$#'
 			identifier: if.condNotBoolean
 			count: 1
 			path: src/Commands/BrunoClearCommand.php
 
 		-
-			message: '#^Parameter \#1 \$path of function base_path expects string, array\|string\|true given\.$#'
+			message: '#^Parameter \#1 \$path of function base_path expects string, array\|float\|int\<min, \-1\>\|int\<1, max\>\|string\|true given\.$#'
 			identifier: argument.type
 			count: 1
 			path: src/Commands/BrunoClearCommand.php
@@ -37,13 +37,13 @@ parameters:
 			path: src/Commands/BrunoGenerateCommand.php
 
 		-
-			message: '#^Only booleans are allowed in an if condition, array\|bool\|string\|null given\.$#'
+			message: '#^Only booleans are allowed in an if condition, array\|bool\|float\|int\|string\|null given\.$#'
 			identifier: if.condNotBoolean
 			count: 7
 			path: src/Commands/BrunoGenerateCommand.php
 
 		-
-			message: '#^Parameter \#2 \$string of function explode expects string, array\|string\|true given\.$#'
+			message: '#^Parameter \#2 \$string of function explode expects string, array\|float\|int\<min, \-1\>\|int\<1, max\>\|string\|true given\.$#'
 			identifier: argument.type
 			count: 4
 			path: src/Commands/BrunoGenerateCommand.php
@@ -178,24 +178,6 @@ parameters:
 			message: '#^Only booleans are allowed in an if condition, mixed given\.$#'
 			identifier: if.condNotBoolean
 			count: 8
-			path: src/Services/RouteNormalizerService.php
-
-		-
-			message: '#^Result of \|\| is always true\.$#'
-			identifier: booleanOr.alwaysTrue
-			count: 1
-			path: src/Services/RouteNormalizerService.php
-
-		-
-			message: '#^Strict comparison using \!\=\= between mixed~\(''none''\|null\) and ''none'' will always evaluate to true\.$#'
-			identifier: notIdentical.alwaysTrue
-			count: 1
-			path: src/Services/RouteNormalizerService.php
-
-		-
-			message: '#^Unreachable statement \- code above always terminates\.$#'
-			identifier: deadCode.unreachable
-			count: 1
 			path: src/Services/RouteNormalizerService.php
 
 		-
