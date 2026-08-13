@@ -45,7 +45,7 @@ final readonly class BrunoRequest
 
     public function hasPathVariables(): bool
     {
-        return ! empty($this->pathVariables);
+        return $this->pathVariables !== [];
     }
 
     public function hasBody(): bool

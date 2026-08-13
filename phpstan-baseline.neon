@@ -73,6 +73,12 @@ parameters:
 			path: src/Services/CollectionOrganizerService.php
 
 		-
+			message: '#^Only booleans are allowed in a negated boolean, mixed given\.$#'
+			identifier: booleanNot.exprNotBoolean
+			count: 1
+			path: src/Services/CollectionOrganizerService.php
+
+		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
 			identifier: argument.templateType
 			count: 1
@@ -165,13 +171,13 @@ parameters:
 		-
 			message: '#^Only booleans are allowed in a negated boolean, mixed given\.$#'
 			identifier: booleanNot.exprNotBoolean
-			count: 4
+			count: 6
 			path: src/Services/RouteNormalizerService.php
 
 		-
 			message: '#^Only booleans are allowed in an if condition, mixed given\.$#'
 			identifier: if.condNotBoolean
-			count: 7
+			count: 8
 			path: src/Services/RouteNormalizerService.php
 
 		-
