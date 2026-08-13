@@ -301,13 +301,33 @@ real CI rather than a local `composer test`.
 rule mapping, and the file-upload body type/serialization fix — all on top
 of Phases 1–3. Same CI-verification note as before applies.
 
-### Phase 5 — Workflow
+### Phase 5 — Workflow — PARTIALLY DONE
 
-1. Non-destructive regeneration (§3.7).
-2. `bruno:check` drift command (§3.8).
-3. Optional Bruno App scaffold.
+1. **Deferred:** non-destructive regeneration (§3.7). This is the one item
+   the roadmap itself flagged as the largest cost — it needs a real
+   `.bru`/YAML *parser* to detect and preserve hand-edited values, not just
+   the serializer this package already has. Scoping it to YAML only (per
+   the original risk note) is still a substantial, separate effort; `bruno:
+   check` (below) at least makes drift visible in the meantime, which
+   softens the need for silent auto-preservation somewhat.
+2. ✅ `bruno:check` drift command. Reuses the exact same discover → filter →
+   normalize → organize → serialize pipeline as `bruno:generate` (extracted
+   into a shared `BuildsBrunoCollection` trait so the two commands can't
+   drift from each other), builds the collection in memory, and diffs it
+   against what's on disk: added (missing on disk), changed (content
+   differs), and orphaned (on disk but not in the generated set — e.g. left
+   over from a route that was removed, or a prior run in a different
+   format). Exits non-zero on any drift; `--verbose` lists the files.
+3. **Deferred:** optional Bruno App scaffold. The `apps/overview` doc
+   describes the `bru.ctx.submitRequest()` API conceptually but not the
+   exact file layout Bruno expects for an App (HTML/CSS/JS or React
+   structure, manifest, etc.) — same don't-guess-the-schema policy as the
+   other deferred items in this roadmap.
 
-**Deliverable:** v3.2.0.
+**Delivered as:** `bruno:check`, plus the `BuildsBrunoCollection` trait
+extraction it required (a pure refactor of `bruno:generate` — same public
+behavior, verified by the existing `BrunoGenerateCommandTest` suite passing
+unchanged). Same CI-verification note as every other phase.
 
 ---
 

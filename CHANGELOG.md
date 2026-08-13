@@ -5,6 +5,12 @@ All notable changes to `laravel-bruno-generator` will be documented in this file
 ## [Unreleased]
 
 ### Added
+- New `bruno:check` command: regenerates the collection in memory (writes
+  nothing) and compares it against what's on disk, reporting files that
+  would be added, changed, or are orphaned from routes that no longer
+  exist. Exits non-zero on any drift — intended as a CI gate. Accepts the
+  same filtering/format options as `bruno:generate`, plus `--verbose` to
+  list the drifted files
 - Route `where()` constraints now inform path parameter examples: numeric
   constraints (`[0-9]+`, `\d+`) produce `1`, alternation constraints
   (`(daily|weekly|monthly)`) produce the first option, UUID-shaped
@@ -66,6 +72,12 @@ All notable changes to `laravel-bruno-generator` will be documented in this file
 - Query parameter generation was a stubbed no-op despite being documented
 
 ### Changed
+- Extracted `BrunoGenerateCommand`'s route-discovery-to-file-map pipeline
+  and option-parsing helpers into a shared `BuildsBrunoCollection` trait,
+  reused by the new `bruno:check` command. `BrunoGenerateCommand`'s public
+  behavior is unchanged; its private `buildFilterCriteria()`,
+  `determineGroupStrategy()`, `getOutputPath()`, and `sanitizeDirName()`
+  methods moved to the trait
 - Default `output_format` changed from `bru` to `yaml`, matching Bruno's own
   default since v3.1
 - `authToken` is now treated as a secret environment variable by default

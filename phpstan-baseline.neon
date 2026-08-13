@@ -31,22 +31,22 @@ parameters:
 			path: src/Commands/BrunoGenerateCommand.php
 
 		-
-			message: '#^Method ShahGhasiAdil\\LaravelBrunoGenerator\\Commands\\BrunoGenerateCommand\:\:sanitizeDirName\(\) should return string but returns string\|null\.$#'
-			identifier: return.type
+			message: '#^Only booleans are allowed in an if condition, array\|bool\|float\|int\|string\|null given\.$#'
+			identifier: if.condNotBoolean
 			count: 1
 			path: src/Commands/BrunoGenerateCommand.php
 
 		-
 			message: '#^Only booleans are allowed in an if condition, array\|bool\|float\|int\|string\|null given\.$#'
 			identifier: if.condNotBoolean
-			count: 7
-			path: src/Commands/BrunoGenerateCommand.php
+			count: 6
+			path: src/Commands/Concerns/BuildsBrunoCollection.php
 
 		-
 			message: '#^Parameter \#2 \$string of function explode expects string, array\|float\|int\<min, \-1\>\|int\<1, max\>\|string\|true given\.$#'
 			identifier: argument.type
 			count: 4
-			path: src/Commands/BrunoGenerateCommand.php
+			path: src/Commands/Concerns/BuildsBrunoCollection.php
 
 		-
 			message: '#^Construct empty\(\) is not allowed\. Use more strict comparison\.$#'

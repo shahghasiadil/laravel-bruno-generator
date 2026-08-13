@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace ShahGhasiAdil\LaravelBrunoGenerator;
 
 use Illuminate\Support\ServiceProvider;
+use ShahGhasiAdil\LaravelBrunoGenerator\Commands\BrunoCheckCommand;
 use ShahGhasiAdil\LaravelBrunoGenerator\Commands\BrunoClearCommand;
 use ShahGhasiAdil\LaravelBrunoGenerator\Commands\BrunoGenerateCommand;
 use ShahGhasiAdil\LaravelBrunoGenerator\Contracts\BrunoSerializerInterface;
@@ -76,6 +77,7 @@ class BrunoGeneratorServiceProvider extends ServiceProvider
             $this->commands([
                 BrunoGenerateCommand::class,
                 BrunoClearCommand::class,
+                BrunoCheckCommand::class,
             ]);
         }
     }

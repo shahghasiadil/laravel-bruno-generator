@@ -52,6 +52,8 @@ Open that folder in Bruno using `Open Collection`.
 - Optional docs, tests, and scripts generation
 - `.bru` and OpenCollection YAML (`.yml`) output support
 - Deterministic, git-friendly generated files
+- `bruno:check` drift detection for CI — regenerates in memory and exits
+  non-zero if the committed collection is out of date
 
 ## Usage
 
@@ -104,6 +106,20 @@ Clear a custom path:
 ```bash
 php artisan bruno:clear path/to/collection --force
 ```
+
+Check whether the committed collection has drifted from what your routes
+currently produce (regenerates in memory, writes nothing, exits non-zero on
+drift — useful as a CI gate):
+
+```bash
+php artisan bruno:check
+```
+
+`bruno:check` accepts the same filtering/format options as `bruno:generate`
+(`--format`, `--output`, `--name`, `--api-only`, `--prefix`,
+`--exclude-prefix`, `--middleware`, `--exclude-middleware`, `--group-by`) so
+you can check the same slice of routes you'd generate. Add `--verbose` to
+list which files would be added, changed, or are orphaned on disk.
 
 ### All generate options
 
@@ -278,6 +294,8 @@ bruno/collections/Laravel-API/
 - Keep environment URLs in `.env`
 - Let `authToken` (and other secrets) stay a secret variable rather than
   disabling `secret: false` — its real value never gets written to disk
+- Run `php artisan bruno:check` in CI to catch a committed collection that's
+  drifted from the routes it was generated from
 
 ## Testing
 
