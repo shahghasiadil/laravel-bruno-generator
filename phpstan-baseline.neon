@@ -153,7 +153,7 @@ parameters:
 		-
 			message: '#^Only booleans are allowed in an if condition, mixed given\.$#'
 			identifier: if.condNotBoolean
-			count: 8
+			count: 7
 			path: src/Services/RouteNormalizerService.php
 
 		-

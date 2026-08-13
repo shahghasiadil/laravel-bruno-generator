@@ -374,7 +374,7 @@ final class RouteNormalizerService implements RouteNormalizerInterface
         // YAML has no collection-root file to inherit from yet, so it always
         // gets full inline credentials regardless of this setting.
         $format = $this->config['output_format'] ?? 'bru';
-        if ($format === 'bru' && ($this->config['auth']['inherit_from_collection'] ?? true)) {
+        if ($format === 'bru' && (bool) ($this->config['auth']['inherit_from_collection'] ?? true)) {
             return new AuthBlock(type: AuthType::INHERIT, config: []);
         }
 
