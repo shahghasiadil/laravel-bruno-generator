@@ -350,10 +350,6 @@ final class CollectionOrganizerService implements CollectionOrganizerInterface
         $result = [];
 
         foreach ($variables as $name => $value) {
-            if (! is_string($name)) {
-                continue;
-            }
-
             if (is_array($value)) {
                 $description = $descriptionsSupported && isset($value['description'])
                     ? (string) $value['description']
