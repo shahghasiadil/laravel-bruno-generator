@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use ShahGhasiAdil\LaravelBrunoGenerator\DTO\RouteInfo;
 use ShahGhasiAdil\LaravelBrunoGenerator\Enums\AuthType;
+use ShahGhasiAdil\LaravelBrunoGenerator\Enums\BodyType;
 use ShahGhasiAdil\LaravelBrunoGenerator\Services\FormRequestParserService;
 use ShahGhasiAdil\LaravelBrunoGenerator\Services\RouteNormalizerService;
 use ShahGhasiAdil\LaravelBrunoGenerator\Tests\Fixtures\SampleController;
@@ -248,6 +249,32 @@ describe('RouteNormalizerService', function () {
 
         expect($requests->first()->auth)->not->toBeNull();
         expect($requests->first()->auth->type)->toBe(AuthType::INHERIT);
+    });
+
+    test('generates full inline auth for yaml format, since there is no collection-root file to inherit from yet', function () {
+        $config = $this->config;
+        $config['output_format'] = 'yaml';
+        $service = new RouteNormalizerService($this->formRequestParser, $config);
+
+        $routes = collect([
+            new RouteInfo(
+                uri: 'api/users',
+                methods: ['GET'],
+                name: 'users.index',
+                action: 'UserController@index',
+                middleware: ['api', 'auth:sanctum'],
+                domain: null,
+                parameters: [],
+                controller: 'UserController',
+                controllerMethod: 'index',
+                isFallback: false,
+            ),
+        ]);
+
+        $requests = $service->normalize($routes);
+
+        expect($requests->first()->auth->type)->toBe(AuthType::BEARER);
+        expect($requests->first()->auth->config)->toBe(['token' => '{{authToken}}']);
     });
 
     test('generates full inline auth when inherit_from_collection is disabled', function () {
@@ -529,6 +556,33 @@ describe('RouteNormalizerService', function () {
         expect($requests->first()->body->content)->toBeArray();
     });
 
+    test('omits Content-Type for inferred multipart-form requests', function () {
+        $config = $this->config;
+        $config['request_generation']['infer_body_from_form_request'] = true;
+        $service = new RouteNormalizerService($this->formRequestParser, $config);
+
+        $routes = collect([
+            new RouteInfo(
+                uri: 'api/uploads',
+                methods: ['POST'],
+                name: 'uploads.store',
+                action: SampleController::class.'@upload',
+                middleware: ['api'],
+                domain: null,
+                parameters: [],
+                controller: SampleController::class,
+                controllerMethod: 'upload',
+                isFallback: false,
+            ),
+        ]);
+
+        $requests = $service->normalize($routes);
+        $request = $requests->first();
+
+        expect($request->body->type)->toBe(BodyType::MULTIPART_FORM);
+        expect($request->headers)->not->toHaveKey('Content-Type');
+    });
+
     test('does not create body for GET requests', function () {
         $routes = collect([
             new RouteInfo(
@@ -592,6 +646,48 @@ describe('RouteNormalizerService', function () {
         $requests = $this->service->normalize($routes);
 
         expect($requests->first()->pathVariables['period'])->toBe('daily');
+    });
+
+    test('uses a hyphen-free example for an alphabetic-only where() constraint', function () {
+        $routes = collect([
+            new RouteInfo(
+                uri: 'api/countries/{code}',
+                methods: ['GET'],
+                name: 'countries.show',
+                action: 'CountryController@show',
+                middleware: ['api'],
+                domain: null,
+                parameters: ['code' => '[a-zA-Z]+'],
+                controller: 'CountryController',
+                controllerMethod: 'show',
+                isFallback: false,
+            ),
+        ]);
+
+        $requests = $this->service->normalize($routes);
+
+        expect($requests->first()->pathVariables['code'])->toBe('examplevalue');
+    });
+
+    test('uses a slug example for an alphabetic where() constraint that explicitly allows a hyphen', function () {
+        $routes = collect([
+            new RouteInfo(
+                uri: 'api/countries/{code}',
+                methods: ['GET'],
+                name: 'countries.show',
+                action: 'CountryController@show',
+                middleware: ['api'],
+                domain: null,
+                parameters: ['code' => '[a-z-]+'],
+                controller: 'CountryController',
+                controllerMethod: 'show',
+                isFallback: false,
+            ),
+        ]);
+
+        $requests = $this->service->normalize($routes);
+
+        expect($requests->first()->pathVariables['code'])->toBe('example-slug');
     });
 
     test('falls back to the name heuristic when the where() pattern is unrecognized', function () {

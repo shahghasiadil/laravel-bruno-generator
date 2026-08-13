@@ -156,7 +156,7 @@ final class YamlFormatSerializer implements FormatSerializerInterface
         if (in_array($body->type, [BodyType::FORM_URLENCODED, BodyType::MULTIPART_FORM], true) && $body->content !== []) {
             $entries = [];
             foreach ($body->content as $key => $value) {
-                $entries[] = ['name' => $key, 'value' => (string) $value];
+                $entries[] = ['name' => $key, 'value' => $this->stringifyFieldValue($value)];
             }
             $data['data'] = $entries;
 
@@ -175,6 +175,23 @@ final class YamlFormatSerializer implements FormatSerializerInterface
         }
 
         return $data;
+    }
+
+    /**
+     * Stringify a form/multipart field value. Arrays and objects are
+     * JSON-encoded rather than cast, which would otherwise produce the
+     * literal string "Array" and a PHP warning for nested/array rules
+     * (e.g. `tags.*`, `user.name`) combined with a file/image field.
+     */
+    private function stringifyFieldValue(mixed $value): string
+    {
+        if (is_array($value)) {
+            $json = json_encode($value, JSON_UNESCAPED_SLASHES);
+
+            return $json === false ? '' : $json;
+        }
+
+        return (string) $value;
     }
 
     /**

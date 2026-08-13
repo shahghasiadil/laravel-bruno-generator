@@ -76,6 +76,16 @@ describe('BrunoCheckCommand', function () {
         $this->artisan('bruno:check')->assertFailed();
     });
 
+    test('tells the user bruno:generate --force will not remove an orphaned file', function () {
+        $this->artisan('bruno:generate', ['--force' => true])->assertSuccessful();
+
+        $this->filesystem->put($this->collectionPath.'/stale-request.bru', 'meta { name: Stale }');
+
+        $this->artisan('bruno:check')
+            ->expectsOutputToContain('bruno:clear')
+            ->assertFailed();
+    });
+
     test('lists drifted files in verbose mode', function () {
         $this->artisan('bruno:generate', ['--force' => true])->assertSuccessful();
 

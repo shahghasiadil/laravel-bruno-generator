@@ -245,6 +245,18 @@ describe('BrunoGenerateCommand', function () {
         expect($brunoJson['name'])->toBe('Custom API');
     });
 
+    test('honors the configured output_format when --format is not passed', function () {
+        Config::set('bruno-generator.output_format', 'yaml');
+
+        $this->artisan('bruno:generate', ['--force' => true])
+            ->assertSuccessful();
+
+        $collectionPath = base_path(Config::get('bruno-generator.output_path').'/Test-API');
+        $ymlFiles = $this->filesystem->glob($collectionPath.'/**/*.yml');
+
+        expect($ymlFiles)->not->toBeEmpty();
+    });
+
     test('handles --exclude-prefix option', function () {
         // Add route that should be excluded
         Route::middleware(['api'])

@@ -24,7 +24,7 @@ final class BrunoGenerateCommand extends Command
      * @var string
      */
     protected $signature = 'bruno:generate
-                            {--format=bru : Output format (bru or yaml)}
+                            {--format= : Output format (bru or yaml); defaults to config(bruno-generator.output_format)}
                             {--output= : Output directory}
                             {--name= : Collection name}
                             {--api-only : Include only API routes}

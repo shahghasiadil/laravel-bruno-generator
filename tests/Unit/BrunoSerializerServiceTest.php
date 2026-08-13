@@ -296,6 +296,40 @@ describe('BrunoSerializerService', function () {
         expect($bruFile['content']->content)->toContain('attachment: file.pdf');
     });
 
+    test('JSON-encodes nested array values in a multipart body instead of casting to a literal string', function () {
+        $body = new RequestBody(
+            type: BodyType::MULTIPART_FORM,
+            content: ['title' => 'Report', 'tags' => ['a', 'b']],
+            raw: null,
+        );
+
+        $request = new BrunoRequest(
+            name: 'Upload Report',
+            description: 'Test',
+            sequence: 1,
+            method: 'POST',
+            url: '{{baseUrl}}/api/reports',
+            headers: [],
+            queryParams: [],
+            pathVariables: [],
+            body: $body,
+            auth: null,
+            group: null,
+            controller: null,
+            tags: [],
+        );
+
+        $metadata = new CollectionMetadata('Test API', '1');
+        $environments = new EnvironmentCollection(collect());
+        $structure = new CollectionStructure($metadata, collect(), collect([$request]), $environments);
+
+        $files = $this->service->serialize($structure, $this->basePath);
+        $bruFile = $files->first(fn ($file) => $file['content']->type === FileType::BRUNO_REQUEST);
+
+        expect($bruFile['content']->content)->toContain('tags: ["a","b"]');
+        expect($bruFile['content']->content)->not->toContain('tags: Array');
+    });
+
     test('includes auth block when present', function () {
         $auth = new AuthBlock(AuthType::BEARER, ['token' => '{{authToken}}']);
 

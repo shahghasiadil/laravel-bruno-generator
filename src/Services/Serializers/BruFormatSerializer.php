@@ -284,7 +284,7 @@ BRU;
         if (in_array($body->type, [BodyType::FORM_URLENCODED, BodyType::MULTIPART_FORM], true) && $body->content !== []) {
             $lines = ["body:{$bodyType} {"];
             foreach ($body->content as $key => $value) {
-                $lines[] = "  {$key}: {$value}";
+                $lines[] = "  {$key}: {$this->stringifyFieldValue($value)}";
             }
             $lines[] = '}';
 
@@ -363,5 +363,22 @@ BRU;
         $lines = explode("\n", $content);
 
         return implode("\n", array_map(fn ($line) => $indent.$line, $lines));
+    }
+
+    /**
+     * Stringify a form/multipart field value. Arrays and objects are
+     * JSON-encoded rather than interpolated, which would otherwise produce
+     * the literal string "Array" and a PHP warning for nested/array rules
+     * (e.g. `tags.*`, `user.name`) combined with a file/image field.
+     */
+    private function stringifyFieldValue(mixed $value): string
+    {
+        if (is_array($value)) {
+            $json = json_encode($value, JSON_UNESCAPED_SLASHES);
+
+            return $json === false ? '' : $json;
+        }
+
+        return (string) $value;
     }
 }

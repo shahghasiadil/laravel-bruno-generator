@@ -71,10 +71,10 @@ final class RouteNormalizerService implements RouteNormalizerInterface
         $name = $this->generateName($route, $method);
         $description = $this->generateDescription($route);
         $url = $this->buildUrl($route);
-        $headers = $this->buildHeaders($route, $method);
+        $body = $this->parseRequestBody($route, $method);
+        $headers = $this->buildHeaders($method, $body);
         $queryParams = $this->extractQueryParams($route, $method);
         $pathVariables = $this->extractPathVariables($route);
-        $body = $this->parseRequestBody($route, $method);
         $auth = $this->determineAuth($route);
         $group = $this->determineGroup($route);
         $docs = $this->extractPhpDocDocs($route);
@@ -188,7 +188,7 @@ final class RouteNormalizerService implements RouteNormalizerInterface
      *
      * @return array<string, string>
      */
-    private function buildHeaders(RouteInfo $route, string $method): array
+    private function buildHeaders(string $method, ?RequestBody $body): array
     {
         if (! ($this->config['request_generation']['include_default_headers'] ?? true)) {
             return [];
@@ -198,6 +198,13 @@ final class RouteNormalizerService implements RouteNormalizerInterface
 
         // Remove Content-Type for GET/DELETE methods
         if (in_array(strtoupper($method), ['GET', 'DELETE', 'HEAD'])) {
+            unset($headers['Content-Type']);
+        }
+
+        // Multipart requests need a boundary the HTTP client generates at
+        // send time; a hardcoded Content-Type here would be wrong for the
+        // actual body and break multipart parsing.
+        if ($body !== null && $body->type === BodyType::MULTIPART_FORM) {
             unset($headers['Content-Type']);
         }
 
@@ -298,8 +305,14 @@ final class RouteNormalizerService implements RouteNormalizerInterface
         }
 
         // Alphabetic/slug-shaped constraint, e.g. "[a-z-]+", "[a-zA-Z]+", "[a-z]{3,10}".
-        if (preg_match('/^\[[a-zA-Z\-]+\](?:[+*]|\{\d+(,\d*)?\})?$/', $pattern) === 1) {
-            return 'example-slug';
+        if (preg_match('/^\[([a-zA-Z\-]+)\](?:[+*]|\{\d+(,\d*)?\})?$/', $pattern, $matches) === 1) {
+            $charClass = $matches[1];
+            // A hyphen at the very start or end of a character class is a
+            // literal character; anywhere else (e.g. "a-z") it's a range
+            // operator, so the class doesn't actually allow a literal "-".
+            $allowsHyphen = str_starts_with($charClass, '-') || str_ends_with($charClass, '-');
+
+            return $allowsHyphen ? 'example-slug' : 'examplevalue';
         }
 
         return null;
@@ -356,8 +369,12 @@ final class RouteNormalizerService implements RouteNormalizerInterface
         }
 
         // By default, protected requests point at the collection-level auth
-        // block instead of repeating full credentials in every file.
-        if ($this->config['auth']['inherit_from_collection'] ?? true) {
+        // block instead of repeating full credentials in every file. Only
+        // .bru currently serializes a collection-level auth file (collection.bru);
+        // YAML has no collection-root file to inherit from yet, so it always
+        // gets full inline credentials regardless of this setting.
+        $format = $this->config['output_format'] ?? 'bru';
+        if ($format === 'bru' && ($this->config['auth']['inherit_from_collection'] ?? true)) {
             return new AuthBlock(type: AuthType::INHERIT, config: []);
         }
 

@@ -32,7 +32,7 @@ final class BrunoCheckCommand extends Command
      * @var string
      */
     protected $signature = 'bruno:check
-                            {--format=bru : Output format (bru or yaml)}
+                            {--format= : Output format (bru or yaml); defaults to config(bruno-generator.output_format)}
                             {--output= : Output directory}
                             {--name= : Collection name}
                             {--api-only : Include only API routes}
@@ -101,7 +101,15 @@ final class BrunoCheckCommand extends Command
             }
 
             $this->newLine();
-            $this->error('❌ Drift detected. Run `php artisan bruno:generate --force` to update the collection.');
+
+            if ($orphaned->isNotEmpty()) {
+                $this->error(
+                    '❌ Drift detected, including orphaned files that `bruno:generate --force` will not remove. '
+                    .'Run `php artisan bruno:clear` first, then `php artisan bruno:generate` to update the collection.'
+                );
+            } else {
+                $this->error('❌ Drift detected. Run `php artisan bruno:generate --force` to update the collection.');
+            }
 
             return self::FAILURE;
         } catch (BrunoGeneratorException $e) {

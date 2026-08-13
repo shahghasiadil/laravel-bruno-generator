@@ -50,4 +50,12 @@ class SampleController extends Controller
     {
         return response()->json(['deleted' => true]);
     }
+
+    /**
+     * Upload an attachment.
+     */
+    public function upload(UploadFormRequest $request): JsonResponse
+    {
+        return response()->json(['uploaded' => true]);
+    }
 }

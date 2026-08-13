@@ -93,6 +93,35 @@ describe('YamlFormatSerializer', function () {
         ]);
     });
 
+    test('JSON-encodes nested array values in a multipart body instead of casting to a literal string', function () {
+        $request = new BrunoRequest(
+            name: 'Upload',
+            description: 'Test',
+            sequence: 1,
+            method: 'POST',
+            url: '{{baseUrl}}/api/uploads',
+            headers: [],
+            queryParams: [],
+            pathVariables: [],
+            body: new RequestBody(
+                type: BodyType::MULTIPART_FORM,
+                content: ['title' => 'Report', 'tags' => ['a', 'b'], 'attachment' => 'file.pdf'],
+                raw: null,
+            ),
+            auth: null,
+            group: null,
+            controller: null,
+            tags: [],
+        );
+
+        $yaml = Yaml::parse($this->serializer->serializeRequest($request));
+        $entries = collect($yaml['http']['body']['data'])->keyBy('name');
+
+        expect($entries['title']['value'])->toBe('Report');
+        expect($entries['tags']['value'])->toBe('["a","b"]');
+        expect($entries['attachment']['value'])->toBe('file.pdf');
+    });
+
     test('serializes scripts and tests into runtime.scripts', function () {
         $request = new BrunoRequest(
             name: 'Login',
