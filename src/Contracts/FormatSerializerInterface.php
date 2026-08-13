@@ -6,13 +6,14 @@ namespace ShahGhasiAdil\LaravelBrunoGenerator\Contracts;
 
 use ShahGhasiAdil\LaravelBrunoGenerator\DTO\AuthBlock;
 use ShahGhasiAdil\LaravelBrunoGenerator\DTO\BrunoRequest;
+use ShahGhasiAdil\LaravelBrunoGenerator\DTO\EnvironmentVariable;
 
 interface FormatSerializerInterface
 {
     public function serializeRequest(BrunoRequest $request): string;
 
     /**
-     * @param  array<string, string>  $variables
+     * @param  array<int, EnvironmentVariable>  $variables
      */
     public function serializeEnvironment(string $name, array $variables): string;
 

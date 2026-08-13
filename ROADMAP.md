@@ -226,20 +226,47 @@ its result on the pushed branch before merging.
 `collection.bru` generation. Same verification caveat as Phase 1 applies —
 run/rely on CI, not a local `composer test` in a restricted sandbox.
 
-### Phase 3 — v4 native features
+### Phase 3 — v4 native features — PARTIALLY DONE
 
-1. Typed variables end to end (env vars, body values, folder/collection vars).
-2. `@description` / `description:` on headers, params, and env vars, sourced
-   from validation rules and PHPDoc.
-3. Secret variables: config-driven `secret_variables` list, defaulting to
-   `authToken`; `vars:secret` in BRU, `secret: true` in YAML.
-4. `externalSecrets` support in environment files.
-5. Declarative `assertions` alongside JS tests.
-6. Switch the default `output_format` to `yaml`.
+1. **Deferred:** typed variables (`@number`/`@boolean`/`@object` in `.bru`,
+   `value: {type, data}` in YAML). On closer reading of the docs, this
+   schema applies to `runtime.variables` (script-set vars) and
+   folder/collection variables — **not** environment variables, which stay
+   plain `name`/`value` per the docs' own example. We don't generate
+   runtime or folder/collection variables at all yet (folder/collection
+   generation is itself deferred from Phase 2), so there's no anchor point
+   for typed variables in current output. Revisit once folder/collection
+   variable generation exists.
+2. ✅ `@description` on environment variables, `.bru`
+   (`@description('''...''')`) and YAML (`description:`), via the new array
+   config shape (`'name' => ['value' => ..., 'description' => ...]`).
+   **Deferred:** header and query/path param descriptions — would need
+   either a config schema for per-header descriptions or FormRequest-rule-
+   derived text generation for params; real value, but a separate pass.
+   Confirmed `@description` doesn't parse in Bruno 3's `.bru` (absent from
+   the v3 docs' tag reference), so it's gated behind the new
+   `bruno_compatibility` config (`v3` | `v4`, default `v4`).
+3. ✅ Secret variables: `secrets.variable_names` (default `['authToken']`),
+   or a per-variable `'secret' => true/false` override via the array config
+   shape; `vars:secret [...]` (name-only) in `.bru`, `secret: true` + blanked
+   `value` in YAML. Confirmed `vars:secret` predates v4 (present in the v3
+   docs too), so no compatibility gating needed here.
+4. **Deferred:** `externalSecrets` support in environment files. The exact
+   schema wasn't in the pages fetched during the original audit (only a
+   release-notes summary mentioning the section exists) — same
+   don't-guess-the-schema policy as the deferred YAML collection-root file.
+5. **Deferred:** declarative `assertions`. The YAML samples doc uses
+   operator names (`eq`, `neq`, `isString`) that don't match the dedicated
+   assertions doc's operator names (`equals`, `notEquals`, `isString`), and
+   no `.bru` block syntax for assertions was found in the fetched docs —
+   the inconsistency itself is a signal not to guess here.
+6. ✅ Switched the default `output_format` to `yaml`, matching Bruno's own
+   default since v3.1.
 
-**Deliverable:** v3.0.0 — "Bruno v4 native". Requires Bruno ≥ 4.0.0; keep a
-`bruno_compatibility` config (`v3` | `v4`) so v3 users can suppress `@type`
-annotations, which older Bruno cannot parse.
+**Delivered as:** secret variables, environment variable descriptions, the
+`bruno_compatibility` toggle, and the `yaml` default — all on top of Phase
+1+2. Same sandbox verification caveat as before: pushed and checked against
+real CI rather than a local `composer test`.
 
 ### Phase 4 — Laravel depth
 

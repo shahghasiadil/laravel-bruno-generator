@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use ShahGhasiAdil\LaravelBrunoGenerator\DTO\AuthBlock;
 use ShahGhasiAdil\LaravelBrunoGenerator\DTO\BrunoRequest;
+use ShahGhasiAdil\LaravelBrunoGenerator\DTO\EnvironmentVariable;
 use ShahGhasiAdil\LaravelBrunoGenerator\DTO\RequestBody;
 use ShahGhasiAdil\LaravelBrunoGenerator\Enums\AuthType;
 use ShahGhasiAdil\LaravelBrunoGenerator\Enums\BodyType;
@@ -148,7 +149,9 @@ describe('YamlFormatSerializer', function () {
     });
 
     test('serializes environments as an array of variable objects', function () {
-        $yaml = Yaml::parse($this->serializer->serializeEnvironment('Local', ['baseUrl' => 'http://localhost']));
+        $yaml = Yaml::parse($this->serializer->serializeEnvironment('Local', [
+            new EnvironmentVariable(name: 'baseUrl', value: 'http://localhost'),
+        ]));
 
         expect($yaml)->toBe([
             'name' => 'Local',
@@ -161,5 +164,26 @@ describe('YamlFormatSerializer', function () {
                 ],
             ],
         ]);
+    });
+
+    test('blanks the value and sets secret: true for secret environment variables', function () {
+        $yaml = Yaml::parse($this->serializer->serializeEnvironment('Local', [
+            new EnvironmentVariable(name: 'authToken', value: 'super-secret', secret: true),
+        ]));
+
+        expect($yaml['variables'][0])->toBe([
+            'name' => 'authToken',
+            'value' => '',
+            'enabled' => true,
+            'secret' => true,
+        ]);
+    });
+
+    test('includes a description for environment variables when present', function () {
+        $yaml = Yaml::parse($this->serializer->serializeEnvironment('Local', [
+            new EnvironmentVariable(name: 'baseUrl', value: 'http://localhost', description: 'Local dev server'),
+        ]));
+
+        expect($yaml['variables'][0]['description'])->toBe('Local dev server');
     });
 });

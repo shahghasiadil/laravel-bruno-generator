@@ -5,6 +5,18 @@ All notable changes to `laravel-bruno-generator` will be documented in this file
 ## [Unreleased]
 
 ### Added
+- Secret environment variables: names listed in `secrets.variable_names`
+  (default `['authToken']`), or marked `'secret' => true` per-variable, are
+  never written to disk. `.bru` output lists them by name only in a
+  `vars:secret` block; YAML output sets `secret: true` with an empty value
+- `@description` support on environment variables (`.bru` `@description('''...''')`
+  annotations / YAML `description:` field), sourced from the new array shape
+  for environment variable config entries (`['value' => ..., 'description' => ...]`)
+- `bruno_compatibility` config (`v3` | `v4`, default `v4`) gates the
+  `@description` annotation, which Bruno 3.x's `.bru` parser doesn't
+  recognize; set to `v3` to suppress it for collections that need to open in
+  older Bruno
+- New `EnvironmentVariable` DTO carrying name/value/secret/description
 - Support for OpenCollection YAML format
 - `--format` option to choose output format (bru or yaml)
 - Environment variable: `BRUNO_OUTPUT_FORMAT`
@@ -38,6 +50,14 @@ All notable changes to `laravel-bruno-generator` will be documented in this file
 - Query parameter generation was a stubbed no-op despite being documented
 
 ### Changed
+- Default `output_format` changed from `bru` to `yaml`, matching Bruno's own
+  default since v3.1
+- `authToken` is now treated as a secret environment variable by default
+  (see `secrets.variable_names`), so freshly generated collections no longer
+  write it to disk even as an empty placeholder
+- `EnvironmentConfig::$variables` changed from `array<string, string>` to
+  `array<int, EnvironmentVariable>`; `FormatSerializerInterface::serializeEnvironment()`
+  updated to match
 - YAML file extension changed from `.yaml` to `.yml` to match Bruno's
   OpenCollection convention
 - Documentation length limit now only applies to .bru format

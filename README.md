@@ -219,6 +219,33 @@ Each environment contains values like `baseUrl` and `authToken` and can be switc
 
 You can add custom environments (for example `Development`, `QA`, `UAT`) in `config/bruno-generator.php`.
 
+### Secret variables
+
+Variable names listed in `secrets.variable_names` (`authToken` by default)
+are never written to the generated environment file — Bruno manages their
+real value separately (OS keychain, or AES256 as a fallback), and you set it
+through Bruno's environment UI after opening the collection. In `.bru`
+output this looks like a name-only `vars:secret [...]` block; in YAML output
+the variable gets `secret: true` and an empty `value`.
+
+Use the array shape to mark a custom variable as secret, or add a description:
+
+```php
+'environments' => [
+    'Staging' => [
+        'baseUrl' => env('STAGING_URL', 'https://staging.example.com'),
+        'apiKey' => [
+            'value' => env('STAGING_API_KEY', ''),
+            'description' => 'API key issued by the staging gateway',
+            'secret' => true,
+        ],
+    ],
+],
+```
+
+Descriptions are a Bruno 4 addition; set `bruno_compatibility` to `v3` to
+omit them if your collection needs to open in an older Bruno.
+
 ## Generated Structure
 
 Typical output:
@@ -240,7 +267,8 @@ bruno/collections/Laravel-API/
 - Keep route filters explicit in larger projects
 - Commit generated collections to track API changes
 - Keep environment URLs in `.env`
-- Do not commit real auth tokens
+- Let `authToken` (and other secrets) stay a secret variable rather than
+  disabling `secret: false` — its real value never gets written to disk
 
 ## Testing
 

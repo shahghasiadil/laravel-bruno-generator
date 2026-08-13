@@ -8,6 +8,7 @@ use ShahGhasiAdil\LaravelBrunoGenerator\DTO\CollectionMetadata;
 use ShahGhasiAdil\LaravelBrunoGenerator\DTO\CollectionStructure;
 use ShahGhasiAdil\LaravelBrunoGenerator\DTO\EnvironmentCollection;
 use ShahGhasiAdil\LaravelBrunoGenerator\DTO\EnvironmentConfig;
+use ShahGhasiAdil\LaravelBrunoGenerator\DTO\EnvironmentVariable;
 use ShahGhasiAdil\LaravelBrunoGenerator\DTO\FolderNode;
 use ShahGhasiAdil\LaravelBrunoGenerator\DTO\RequestBody;
 use ShahGhasiAdil\LaravelBrunoGenerator\Enums\AuthType;
@@ -111,8 +112,12 @@ describe('BrunoSerializerService', function () {
     test('generates environment files', function () {
         $metadata = new CollectionMetadata('Test API', '1');
         $environments = new EnvironmentCollection(collect([
-            'Local' => new EnvironmentConfig('Local', ['baseUrl' => 'http://localhost']),
-            'Production' => new EnvironmentConfig('Production', ['baseUrl' => 'https://api.example.com']),
+            'Local' => new EnvironmentConfig('Local', [
+                new EnvironmentVariable(name: 'baseUrl', value: 'http://localhost'),
+            ]),
+            'Production' => new EnvironmentConfig('Production', [
+                new EnvironmentVariable(name: 'baseUrl', value: 'https://api.example.com'),
+            ]),
         ]));
         $structure = new CollectionStructure($metadata, collect(), collect(), $environments);
 
@@ -122,6 +127,41 @@ describe('BrunoSerializerService', function () {
 
         expect($envFiles)->toHaveCount(2);
         expect($envFiles->pluck('path')->map->basename()->all())->toContain('Local.bru', 'Production.bru');
+    });
+
+    test('writes secret environment variables as a name-only vars:secret block', function () {
+        $metadata = new CollectionMetadata('Test API', '1');
+        $environments = new EnvironmentCollection(collect([
+            'Local' => new EnvironmentConfig('Local', [
+                new EnvironmentVariable(name: 'baseUrl', value: 'http://localhost'),
+                new EnvironmentVariable(name: 'authToken', value: 'super-secret', secret: true),
+            ]),
+        ]));
+        $structure = new CollectionStructure($metadata, collect(), collect(), $environments);
+
+        $files = $this->service->serialize($structure, $this->basePath);
+        $envFile = $files->first(fn ($file) => str_ends_with($file['path']->relativePath, 'Local.bru'));
+
+        expect($envFile['content']->content)->toContain('vars {');
+        expect($envFile['content']->content)->toContain('baseUrl: http://localhost');
+        expect($envFile['content']->content)->not->toContain('super-secret');
+        expect($envFile['content']->content)->toContain('vars:secret [');
+        expect($envFile['content']->content)->toContain('authToken');
+    });
+
+    test('writes @description above described environment variables', function () {
+        $metadata = new CollectionMetadata('Test API', '1');
+        $environments = new EnvironmentCollection(collect([
+            'Local' => new EnvironmentConfig('Local', [
+                new EnvironmentVariable(name: 'baseUrl', value: 'http://localhost', description: 'Local dev server'),
+            ]),
+        ]));
+        $structure = new CollectionStructure($metadata, collect(), collect(), $environments);
+
+        $files = $this->service->serialize($structure, $this->basePath);
+        $envFile = $files->first(fn ($file) => str_ends_with($file['path']->relativePath, 'Local.bru'));
+
+        expect($envFile['content']->content)->toContain("@description('''Local dev server''')");
     });
 
     test('serializes basic .bru request file', function () {

@@ -7,6 +7,7 @@ namespace ShahGhasiAdil\LaravelBrunoGenerator\Services\Serializers;
 use ShahGhasiAdil\LaravelBrunoGenerator\Contracts\FormatSerializerInterface;
 use ShahGhasiAdil\LaravelBrunoGenerator\DTO\AuthBlock;
 use ShahGhasiAdil\LaravelBrunoGenerator\DTO\BrunoRequest;
+use ShahGhasiAdil\LaravelBrunoGenerator\DTO\EnvironmentVariable;
 use ShahGhasiAdil\LaravelBrunoGenerator\DTO\RequestBody;
 use ShahGhasiAdil\LaravelBrunoGenerator\Enums\BodyType;
 use Symfony\Component\Yaml\Yaml;
@@ -215,17 +216,28 @@ final class YamlFormatSerializer implements FormatSerializerInterface
      *
      * @param  array<string, string>  $variables
      */
+    /**
+     * @param  array<int, EnvironmentVariable>  $variables
+     */
     public function serializeEnvironment(string $name, array $variables): string
     {
         $vars = [];
 
-        foreach ($variables as $key => $value) {
-            $vars[] = [
-                'name' => $key,
-                'value' => $value,
+        foreach ($variables as $var) {
+            $entry = [
+                'name' => $var->name,
+                // Secret values are never written to disk; Bruno manages
+                // them separately (OS keychain / AES256 fallback).
+                'value' => $var->secret ? '' : $var->value,
                 'enabled' => true,
-                'secret' => false,
+                'secret' => $var->secret,
             ];
+
+            if ($var->description !== null) {
+                $entry['description'] = $var->description;
+            }
+
+            $vars[] = $entry;
         }
 
         $data = [

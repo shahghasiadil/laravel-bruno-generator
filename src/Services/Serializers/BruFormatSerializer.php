@@ -7,6 +7,7 @@ namespace ShahGhasiAdil\LaravelBrunoGenerator\Services\Serializers;
 use ShahGhasiAdil\LaravelBrunoGenerator\Contracts\FormatSerializerInterface;
 use ShahGhasiAdil\LaravelBrunoGenerator\DTO\AuthBlock;
 use ShahGhasiAdil\LaravelBrunoGenerator\DTO\BrunoRequest;
+use ShahGhasiAdil\LaravelBrunoGenerator\DTO\EnvironmentVariable;
 use ShahGhasiAdil\LaravelBrunoGenerator\DTO\RequestBody;
 use ShahGhasiAdil\LaravelBrunoGenerator\DTO\RequestSettings;
 use ShahGhasiAdil\LaravelBrunoGenerator\Enums\BodyType;
@@ -82,19 +83,43 @@ final class BruFormatSerializer implements FormatSerializerInterface
     }
 
     /**
-     * Serialize environment .bru file.
+     * Serialize environment .bru file. Secret variables are written as
+     * name-only entries in a vars:secret block; their values are never
+     * written to disk.
      *
-     * @param  array<string, string>  $vars
+     * @param  array<int, EnvironmentVariable>  $vars
      */
     public function serializeEnvironment(string $name, array $vars): string
     {
         $lines = ['vars {'];
+        $secretNames = [];
 
-        foreach ($vars as $key => $value) {
-            $lines[] = "  {$key}: {$value}";
+        foreach ($vars as $var) {
+            if ($var->secret) {
+                $secretNames[] = $var->name;
+
+                continue;
+            }
+
+            if ($var->description !== null) {
+                $lines[] = "  @description('''{$var->description}''')";
+            }
+
+            $lines[] = "  {$var->name}: {$var->value}";
         }
 
         $lines[] = '}';
+
+        if ($secretNames !== []) {
+            $lines[] = '';
+            $lines[] = 'vars:secret [';
+            $lastIndex = count($secretNames) - 1;
+            foreach ($secretNames as $index => $secretName) {
+                $comma = $index < $lastIndex ? ',' : '';
+                $lines[] = "  {$secretName}{$comma}";
+            }
+            $lines[] = ']';
+        }
 
         return implode("\n", $lines)."\n";
     }

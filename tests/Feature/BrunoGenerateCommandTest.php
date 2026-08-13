@@ -14,6 +14,9 @@ beforeEach(function () {
     // Configure output path
     Config::set('bruno-generator.output_path', 'test-bruno-'.uniqid());
     Config::set('bruno-generator.collection_name', 'Test API');
+    // This suite asserts .bru-specific output; pin the format explicitly
+    // rather than relying on the package's default (which is 'yaml').
+    Config::set('bruno-generator.output_format', 'bru');
 
     // Setup test routes
     Route::middleware(['api'])

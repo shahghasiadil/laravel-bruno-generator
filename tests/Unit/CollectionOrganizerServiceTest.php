@@ -416,4 +416,64 @@ describe('CollectionOrganizerService', function () {
         expect($structure->hasAuth())->toBeFalse();
         expect($structure->auth)->toBeNull();
     });
+
+    test('marks variables named in secrets.variable_names as secret by default', function () {
+        $config = array_merge($this->config, [
+            'environments' => [
+                'Local' => ['baseUrl' => 'http://localhost', 'authToken' => ''],
+            ],
+            'secrets' => ['variable_names' => ['authToken']],
+        ]);
+
+        $service = new CollectionOrganizerService($config);
+        $structure = $service->organize(collect(), GroupStrategy::NONE);
+
+        $variables = $structure->environments->environments->first()->variables;
+        $byName = collect($variables)->keyBy('name');
+
+        expect($byName['baseUrl']->secret)->toBeFalse();
+        expect($byName['authToken']->secret)->toBeTrue();
+    });
+
+    test('supports the array shape for finer per-variable control', function () {
+        $config = array_merge($this->config, [
+            'environments' => [
+                'Local' => [
+                    'apiKey' => [
+                        'value' => 'abc123',
+                        'description' => 'Gateway API key',
+                        'secret' => true,
+                    ],
+                ],
+            ],
+        ]);
+
+        $service = new CollectionOrganizerService($config);
+        $structure = $service->organize(collect(), GroupStrategy::NONE);
+
+        $variable = collect($structure->environments->environments->first()->variables)->first();
+
+        expect($variable->name)->toBe('apiKey');
+        expect($variable->value)->toBe('abc123');
+        expect($variable->secret)->toBeTrue();
+        expect($variable->description)->toBe('Gateway API key');
+    });
+
+    test('suppresses descriptions when bruno_compatibility is v3', function () {
+        $config = array_merge($this->config, [
+            'bruno_compatibility' => 'v3',
+            'environments' => [
+                'Local' => [
+                    'apiKey' => ['value' => 'abc123', 'description' => 'Gateway API key'],
+                ],
+            ],
+        ]);
+
+        $service = new CollectionOrganizerService($config);
+        $structure = $service->organize(collect(), GroupStrategy::NONE);
+
+        $variable = collect($structure->environments->environments->first()->variables)->first();
+
+        expect($variable->description)->toBeNull();
+    });
 });

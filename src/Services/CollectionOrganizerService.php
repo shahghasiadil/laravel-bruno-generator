@@ -12,6 +12,7 @@ use ShahGhasiAdil\LaravelBrunoGenerator\DTO\CollectionMetadata;
 use ShahGhasiAdil\LaravelBrunoGenerator\DTO\CollectionStructure;
 use ShahGhasiAdil\LaravelBrunoGenerator\DTO\EnvironmentCollection;
 use ShahGhasiAdil\LaravelBrunoGenerator\DTO\EnvironmentConfig;
+use ShahGhasiAdil\LaravelBrunoGenerator\DTO\EnvironmentVariable;
 use ShahGhasiAdil\LaravelBrunoGenerator\DTO\FolderNode;
 use ShahGhasiAdil\LaravelBrunoGenerator\Enums\AuthType;
 use ShahGhasiAdil\LaravelBrunoGenerator\Enums\GroupStrategy;
@@ -325,10 +326,56 @@ final class CollectionOrganizerService implements CollectionOrganizerInterface
             ->map(function (array $variables, string $name) {
                 return new EnvironmentConfig(
                     name: $name,
-                    variables: $variables,
+                    variables: $this->createEnvironmentVariables($variables),
                 );
             });
 
         return new EnvironmentCollection(environments: $environments);
+    }
+
+    /**
+     * Build typed environment variables from raw config. Each entry may be a
+     * plain value, or an array shape (`['value' => ..., 'description' => ...,
+     * 'secret' => ...]`) for finer control. Variables whose name matches
+     * `secrets.variable_names` are treated as secret by default.
+     *
+     * @param  array<string, mixed>  $variables
+     * @return array<int, EnvironmentVariable>
+     */
+    private function createEnvironmentVariables(array $variables): array
+    {
+        $secretNames = $this->config['secrets']['variable_names'] ?? ['authToken'];
+        $descriptionsSupported = ($this->config['bruno_compatibility'] ?? 'v4') === 'v4';
+
+        $result = [];
+
+        foreach ($variables as $name => $value) {
+            if (! is_string($name)) {
+                continue;
+            }
+
+            if (is_array($value)) {
+                $description = $descriptionsSupported && isset($value['description'])
+                    ? (string) $value['description']
+                    : null;
+
+                $result[] = new EnvironmentVariable(
+                    name: $name,
+                    value: (string) ($value['value'] ?? ''),
+                    secret: (bool) ($value['secret'] ?? in_array($name, $secretNames, true)),
+                    description: $description,
+                );
+
+                continue;
+            }
+
+            $result[] = new EnvironmentVariable(
+                name: $name,
+                value: (string) $value,
+                secret: in_array($name, $secretNames, true),
+            );
+        }
+
+        return $result;
     }
 }
