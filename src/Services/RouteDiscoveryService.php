@@ -45,7 +45,7 @@ final class RouteDiscoveryService implements RouteDiscoveryInterface
                 action: $action,
                 middleware: $this->getMiddleware($route),
                 domain: $route->getDomain(),
-                parameters: $this->extractParameters($route->uri()),
+                parameters: $this->extractParameters($route->uri(), $route),
                 controller: $controller,
                 controllerMethod: $controllerMethod,
                 isFallback: $route->isFallback,
@@ -109,11 +109,12 @@ final class RouteDiscoveryService implements RouteDiscoveryInterface
     }
 
     /**
-     * Extract route parameters from URI pattern.
+     * Extract route parameters from URI pattern, paired with any where()
+     * regex constraint defined on the route.
      *
-     * @return array<string, string>
+     * @return array<string, string|null>
      */
-    private function extractParameters(string $uri): array
+    private function extractParameters(string $uri, Route $route): array
     {
         $parameters = [];
 
@@ -124,7 +125,7 @@ final class RouteDiscoveryService implements RouteDiscoveryInterface
             foreach ($matches[1] as $param) {
                 // Remove optional marker (?)
                 $cleanParam = str_replace('?', '', $param);
-                $parameters[$cleanParam] = $param;
+                $parameters[$cleanParam] = $route->wheres[$cleanParam] ?? null;
             }
         }
 

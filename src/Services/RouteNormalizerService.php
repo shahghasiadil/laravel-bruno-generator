@@ -242,17 +242,25 @@ final class RouteNormalizerService implements RouteNormalizerInterface
         $variables = [];
 
         foreach ($route->parameters as $paramName => $paramPattern) {
-            $variables[$paramName] = $this->generateExampleValue($paramName);
+            $variables[$paramName] = $this->generateExampleValue($paramName, $paramPattern);
         }
 
         return $variables;
     }
 
     /**
-     * Generate example value for parameter based on name.
+     * Generate example value for a route parameter. A where() constraint,
+     * when present, takes priority over the name-based heuristic.
      */
-    private function generateExampleValue(string $paramName): string
+    private function generateExampleValue(string $paramName, ?string $pattern = null): string
     {
+        if ($pattern !== null) {
+            $fromPattern = $this->generateExampleFromPattern($pattern);
+            if ($fromPattern !== null) {
+                return $fromPattern;
+            }
+        }
+
         $lowerName = strtolower($paramName);
 
         return match (true) {
@@ -263,6 +271,38 @@ final class RouteNormalizerService implements RouteNormalizerInterface
             str_contains($lowerName, 'token') => 'sample-token',
             default => 'value',
         };
+    }
+
+    /**
+     * Infer an example value from a route's where() regex constraint.
+     * Returns null when the pattern doesn't match a recognized shape, so the
+     * caller can fall back to the name-based heuristic.
+     */
+    private function generateExampleFromPattern(string $pattern): ?string
+    {
+        // Alternation of literal options, e.g. "(foo|bar|baz)" -> first option.
+        if (preg_match('/^\(([^()|]+(?:\|[^()|]+)+)\)$/', $pattern, $matches) === 1) {
+            $options = explode('|', $matches[1]);
+
+            return $options[0] !== '' ? $options[0] : null;
+        }
+
+        // Purely numeric constraint, e.g. "[0-9]+", "\d+", "[0-9]{1,10}".
+        if (preg_match('/^(\\\\d|\[0-9\])[+*]?(\{\d+(,\d*)?\})?$/', $pattern) === 1) {
+            return '1';
+        }
+
+        // UUID-shaped constraint.
+        if (stripos($pattern, '[0-9a-f]{8}') !== false || stripos($pattern, 'uuid') !== false) {
+            return '123e4567-e89b-12d3-a456-426614174000';
+        }
+
+        // Alphabetic/slug-shaped constraint, e.g. "[a-z-]+", "[a-zA-Z]+", "[a-z]{3,10}".
+        if (preg_match('/^\[[a-zA-Z\-]+\](?:[+*]|\{\d+(,\d*)?\})?$/', $pattern) === 1) {
+            return 'example-slug';
+        }
+
+        return null;
     }
 
     /**

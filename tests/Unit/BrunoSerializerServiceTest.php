@@ -261,6 +261,41 @@ describe('BrunoSerializerService', function () {
         expect($bruFile['content']->content)->toContain('"email": "john@example.com"');
     });
 
+    test('includes multipart-form body block when present', function () {
+        $body = new RequestBody(
+            type: BodyType::MULTIPART_FORM,
+            content: ['title' => 'Report', 'attachment' => 'file.pdf'],
+            raw: null,
+        );
+
+        $request = new BrunoRequest(
+            name: 'Upload Report',
+            description: 'Test',
+            sequence: 1,
+            method: 'POST',
+            url: '{{baseUrl}}/api/reports',
+            headers: [],
+            queryParams: [],
+            pathVariables: [],
+            body: $body,
+            auth: null,
+            group: null,
+            controller: null,
+            tags: [],
+        );
+
+        $metadata = new CollectionMetadata('Test API', '1');
+        $environments = new EnvironmentCollection(collect());
+        $structure = new CollectionStructure($metadata, collect(), collect([$request]), $environments);
+
+        $files = $this->service->serialize($structure, $this->basePath);
+        $bruFile = $files->first(fn ($file) => $file['content']->type === FileType::BRUNO_REQUEST);
+
+        expect($bruFile['content']->content)->toContain('body:multipart-form {');
+        expect($bruFile['content']->content)->toContain('title: Report');
+        expect($bruFile['content']->content)->toContain('attachment: file.pdf');
+    });
+
     test('includes auth block when present', function () {
         $auth = new AuthBlock(AuthType::BEARER, ['token' => '{{authToken}}']);
 

@@ -268,12 +268,38 @@ run/rely on CI, not a local `composer test` in a restricted sandbox.
 1+2. Same sandbox verification caveat as before: pushed and checked against
 real CI rather than a local `composer test`.
 
-### Phase 4 — Laravel depth
+### Phase 4 — Laravel depth — PARTIALLY DONE
 
-Items 1–6 and 9 from §3 (rules mapping, attributes, Scribe annotations, login
-bootstrap, partial regeneration).
+1. ✅ Route `where()` constraints now feed path parameter examples (numeric,
+   alternation, UUID-shaped, and alphabetic/slug constraints recognized;
+   falls back to the existing name heuristic otherwise). The FormRequest
+   half of item 1 (query params) shipped in Phase 1.
+2. ✅ `in:a,b,c` → first value; `between:min,max` → `min`, same as `min:`.
+   Fixed a related real bug in the same pass: FormRequest bodies with a
+   `file`/`image` rule now actually produce a `multipart-form` body — they
+   generated a JSON body with a fake filename string before, and even that
+   silently vanished in `.bru` output because the serializer had no
+   `multipart-form` case at all. **Deferred:** `Rule::enum(...)` object
+   detection, and `regex:`-driven examples — reflecting an arbitrary enum
+   class or generating a string that satisfies an arbitrary regex both need
+   more design than this pass had room for.
+3. **Deferred:** PHP attributes (`#[BrunoIgnore]`, `#[BrunoName]`, etc.).
+   Real value, but it's a new subsystem (reflection-based scanning wired
+   into route filtering and normalization) rather than a delta on existing
+   logic — needs its own pass.
+4. **Deferred:** Scribe-style PHPDoc annotations (`@bodyParam`,
+   `@queryParam`, etc.).
+5. ✅ Already delivered in Phase 2 (collection-level auth + `auth: inherit`).
+6. **Deferred:** login/token bootstrap. A heuristic "which route is login"
+   guess risks injecting a nonsensical script into an unrelated endpoint;
+   doing this safely needs an explicit config mapping (route name → capture
+   behavior) rather than auto-detection, which is a small feature in its
+   own right.
+9. **Deferred:** `--routes=`/`--tags=` partial regeneration.
 
-**Deliverable:** v3.1.0.
+**Delivered as:** route-constraint-aware path examples, `in:`/`between:`
+rule mapping, and the file-upload body type/serialization fix — all on top
+of Phases 1–3. Same CI-verification note as before applies.
 
 ### Phase 5 — Workflow
 

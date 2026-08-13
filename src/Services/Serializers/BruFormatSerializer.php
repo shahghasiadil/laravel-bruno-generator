@@ -281,8 +281,8 @@ body:json {
 BRU;
         }
 
-        if ($body->type === BodyType::FORM_URLENCODED && $body->content !== []) {
-            $lines = ['body:form-urlencoded {'];
+        if (in_array($body->type, [BodyType::FORM_URLENCODED, BodyType::MULTIPART_FORM], true) && $body->content !== []) {
+            $lines = ["body:{$bodyType} {"];
             foreach ($body->content as $key => $value) {
                 $lines[] = "  {$key}: {$value}";
             }

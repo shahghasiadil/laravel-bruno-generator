@@ -549,4 +549,69 @@ describe('RouteNormalizerService', function () {
 
         expect($requests->first()->body)->toBeNull();
     });
+
+    test('uses a where() numeric constraint over the name heuristic', function () {
+        $routes = collect([
+            new RouteInfo(
+                uri: 'api/posts/{slug}',
+                methods: ['GET'],
+                name: 'posts.show',
+                action: 'PostController@show',
+                middleware: ['api'],
+                domain: null,
+                parameters: ['slug' => '[0-9]+'],
+                controller: 'PostController',
+                controllerMethod: 'show',
+                isFallback: false,
+            ),
+        ]);
+
+        $requests = $this->service->normalize($routes);
+
+        // "slug" would normally produce 'example-slug' by name, but the
+        // numeric where() constraint should win.
+        expect($requests->first()->pathVariables['slug'])->toBe('1');
+    });
+
+    test('uses a where() alternation constraint to pick the first option', function () {
+        $routes = collect([
+            new RouteInfo(
+                uri: 'api/reports/{period}',
+                methods: ['GET'],
+                name: 'reports.show',
+                action: 'ReportController@show',
+                middleware: ['api'],
+                domain: null,
+                parameters: ['period' => '(daily|weekly|monthly)'],
+                controller: 'ReportController',
+                controllerMethod: 'show',
+                isFallback: false,
+            ),
+        ]);
+
+        $requests = $this->service->normalize($routes);
+
+        expect($requests->first()->pathVariables['period'])->toBe('daily');
+    });
+
+    test('falls back to the name heuristic when the where() pattern is unrecognized', function () {
+        $routes = collect([
+            new RouteInfo(
+                uri: 'api/users/{id}',
+                methods: ['GET'],
+                name: 'users.show',
+                action: 'UserController@show',
+                middleware: ['api'],
+                domain: null,
+                parameters: ['id' => '.*'],
+                controller: 'UserController',
+                controllerMethod: 'show',
+                isFallback: false,
+            ),
+        ]);
+
+        $requests = $this->service->normalize($routes);
+
+        expect($requests->first()->pathVariables['id'])->toBe('1');
+    });
 });

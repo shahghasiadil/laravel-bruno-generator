@@ -5,6 +5,18 @@ All notable changes to `laravel-bruno-generator` will be documented in this file
 ## [Unreleased]
 
 ### Added
+- Route `where()` constraints now inform path parameter examples: numeric
+  constraints (`[0-9]+`, `\d+`) produce `1`, alternation constraints
+  (`(daily|weekly|monthly)`) produce the first option, UUID-shaped
+  constraints produce a sample UUID, and alphabetic constraints produce a
+  slug-like example — falling back to the existing name-based heuristic when
+  the constraint isn't recognized
+- FormRequest `in:a,b,c` rules now produce the first allowed value as the
+  example, instead of a generic string
+- FormRequest `between:min,max` rules on integer/numeric fields now use
+  `min` as the example value, same as `min:`
+- FormRequest bodies with a `file` or `image` rule on any field now
+  correctly generate a `multipart-form` body instead of JSON
 - Secret environment variables: names listed in `secrets.variable_names`
   (default `['authToken']`), or marked `'secret' => true` per-variable, are
   never written to disk. `.bru` output lists them by name only in a
@@ -39,6 +51,10 @@ All notable changes to `laravel-bruno-generator` will be documented in this file
   `akamai-edgegrid` cases to match Bruno's supported auth modes
 
 ### Fixed
+- `.bru` serializer had no case for `multipart-form` bodies and silently
+  produced an empty body block for any file/image upload endpoint
+- Route parameters had no way to carry a `where()` constraint at all — the
+  captured value was always just the parameter's own name
 - `settings` block was silently dropped from every request when
   `CollectionOrganizerService` reassigned sequence numbers after sorting
 - YAML output did not conform to the OpenCollection spec: headers/params

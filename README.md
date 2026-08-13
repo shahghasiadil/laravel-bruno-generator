@@ -46,7 +46,8 @@ Open that folder in Bruno using `Open Collection`.
 - Auth support (`none`, `bearer`, `basic`, `oauth2`), with protected routes
   pointing at a shared collection-level auth block (`auth: inherit`)
 - Real Bruno path parameters (`:id` + `params:path`) and query parameters
-  inferred from FormRequest rules
+  inferred from FormRequest rules, with example values informed by
+  `where()` route constraints when present
 - Multi-environment generation (`Local`, `Staging`, `Production` by default)
 - Optional docs, tests, and scripts generation
 - `.bru` and OpenCollection YAML (`.yml`) output support
@@ -187,6 +188,14 @@ Example generated body:
 ```
 
 Nested rules like `user.name` and `user.email` are also supported.
+
+Other rules that shape the generated example:
+
+- `in:draft,published,archived` uses the first listed value (`draft`)
+- `between:5,20` on an integer/numeric field uses the lower bound (`5`),
+  same as `min:`
+- A `file` or `image` rule on any field switches the whole request to a
+  `multipart-form` body instead of JSON
 
 ## Output Formats
 
