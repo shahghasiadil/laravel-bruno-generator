@@ -43,8 +43,8 @@ final class BruFormatSerializer implements FormatSerializerInterface
             $blocks[] = $this->formatHeadersBlock($request->headers);
         }
 
-        // Auth block
-        if ($request->hasAuth()) {
+        // Auth block (skipped for `inherit`, which has no config of its own)
+        if ($request->hasAuth() && $request->auth !== null && ! $request->auth->isInherit()) {
             $blocks[] = $this->formatAuthBlock($request->auth);
         }
 
@@ -97,6 +97,18 @@ final class BruFormatSerializer implements FormatSerializerInterface
         $lines[] = '}';
 
         return implode("\n", $lines)."\n";
+    }
+
+    /**
+     * Serialize the collection.bru auth block.
+     */
+    public function serializeCollectionAuth(AuthBlock $auth): ?string
+    {
+        if ($auth->isNone() || $auth->isInherit()) {
+            return null;
+        }
+
+        return $this->formatAuthBlock($auth)."\n";
     }
 
     public function getFileExtension(): string

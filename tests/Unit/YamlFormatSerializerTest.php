@@ -121,6 +121,32 @@ describe('YamlFormatSerializer', function () {
         ]);
     });
 
+    test('serializes inherit auth as the bare scalar', function () {
+        $request = new BrunoRequest(
+            name: 'Get Users',
+            description: 'Test',
+            sequence: 1,
+            method: 'GET',
+            url: '{{baseUrl}}/api/users',
+            headers: [],
+            queryParams: [],
+            pathVariables: [],
+            body: null,
+            auth: new AuthBlock(AuthType::INHERIT, []),
+            group: null,
+            controller: null,
+            tags: [],
+        );
+
+        $yaml = Yaml::parse($this->serializer->serializeRequest($request));
+
+        expect($yaml['http']['auth'])->toBe('inherit');
+    });
+
+    test('does not support a collection-level auth file yet', function () {
+        expect($this->serializer->serializeCollectionAuth(new AuthBlock(AuthType::BEARER, ['token' => '{{authToken}}'])))->toBeNull();
+    });
+
     test('serializes environments as an array of variable objects', function () {
         $yaml = Yaml::parse($this->serializer->serializeEnvironment('Local', ['baseUrl' => 'http://localhost']));
 

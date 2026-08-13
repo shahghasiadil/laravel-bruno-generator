@@ -157,39 +157,74 @@ Bruno uses `meta.tags` / `info.tags` to filter requests during collection runs
 
 ## 4. Phased delivery
 
-### Phase 1 — Correctness (patch/minor, no config changes)
+### Phase 1 — Correctness (patch/minor, no config changes) — DONE
 
 Goal: what we already claim to support actually works.
 
-1. Fix `settings` loss in `reassignSequences()` (§1.2) + regression test.
-2. Rewrite `YamlFormatSerializer` against the OpenCollection spec (§1.1):
+1. ✅ Fix `settings` loss in `reassignSequences()` (§1.2) + regression test.
+2. ✅ Rewrite `YamlFormatSerializer` against the OpenCollection spec (§1.1):
    `info`/`http`/`runtime`/`settings`/`docs`, array-shaped headers and params,
    `{type, data}` bodies, flat auth, `runtime.scripts[]`.
-3. Change the YAML extension to `.yml` and emit `opencollection.yml` for YAML
-   collections (keep `bruno.json` for `.bru` collections).
-4. Serialize path params: `:param` URLs plus `params:path` / `type: path`
-   entries, behind the existing `parameterize_route_params` flag so current
-   users can keep `{{param}}`.
-5. Implement `extractQueryParams()` or remove the config key.
-6. Emit `meta.tags` / `info.tags`.
-7. Golden-file tests for both formats, plus a CI job that runs `bru run --dry`
-   (Bruno CLI) over a generated fixture collection to catch schema drift.
+3. ✅ Changed the YAML extension to `.yml`. **Deferred:** emitting
+   `opencollection.yml` as the collection root — kept `bruno.json` for both
+   formats for now, since the collection-root YAML schema (as opposed to the
+   per-request schema) isn't fully documented in Bruno's public docs and
+   guessing it risks repeating the exact mistake this phase fixed. Revisit
+   once verified against a live Bruno v4 install.
+4. ✅ Serialize path params: `:param` URLs plus a `params:path` block, behind
+   a new `request_generation.path_param_style` config key (`colon` default,
+   `double_brace` to keep the old `{{param}}` behavior).
+5. ✅ Implemented `extractQueryParams()` — infers flat query params from
+   FormRequest rules on GET/HEAD routes.
+6. ✅ Emit `meta.tags` / `info.tags`.
+7. **Deferred:** golden-file/CI-level verification against the real Bruno CLI
+   (`bru run --dry`) — out of scope for this pass; unit/feature tests added
+   instead (see `tests/Unit/YamlFormatSerializerTest.php`).
 
-**Deliverable:** v2.0.0 — YAML output is spec-correct. Breaking for anyone
-depending on the old (broken) YAML shape or `.yaml` filenames; document in
-`UPGRADE.md`.
+**Delivered as:** the `settings` fix, an OpenCollection-conformant
+`YamlFormatSerializer`, real path/query params, and tag output, all on top
+of `main`. Breaking for anyone depending on the old (non-conformant) YAML
+shape or `.yaml` filenames; documented in `UPGRADE.md`.
 
-### Phase 2 — Structure and auth
+**Verification caveat:** this phase's tests could not be executed in the
+authoring sandbox — the sandbox's GitHub-access-scoping proxy makes
+`composer install` fail deterministically (Composer's non-interactive
+auth-retry path crashes on the repeated 403s from unattached dev
+dependencies; see commit history for the full investigation). CI
+(`.github/workflows/run-tests.yml`, `.github/workflows/phpstan.yml`) has
+real GitHub access and is the actual verification for this phase — check
+its result on the pushed branch before merging.
 
-1. `folder.bru` / `folder.yml` generation: name, `seq`, docs.
-2. `collection.bru` / `opencollection.yml`: collection-level auth, default
-   headers, collection vars, docs.
-3. Auth rework: `AuthType` gains `inherit`, `apikey`, `oauth1`, `ntlm`, `wsse`,
-   `akamai-edgegrid`; rename `aws-sig-v4` → `awsv4`; requests inherit from the
-   collection; public routes get `none` (§1.6).
-4. Move default headers from every request to the collection block.
+### Phase 2 — Structure and auth — PARTIALLY DONE
 
-**Deliverable:** v2.1.0 — smaller, more idiomatic collections.
+1. **Deferred:** `folder.bru` / `folder.yml` generation (name, `seq`, docs).
+   Not started — needs a per-folder sequencing/docs source we don't compute
+   yet, and (for YAML) the same collection-root schema risk as Phase 1 item 3.
+2. ✅ `collection.bru`: collection-level auth block that protected requests
+   point at via `auth: inherit`, built from the same `auth.mode` config
+   already used for per-request auth. **`.bru` only** — the YAML
+   equivalent needs the same unverified `opencollection.yml` schema flagged
+   in Phase 1, so YAML requests still inline full auth per request rather
+   than using `inherit`. `FormatSerializerInterface::serializeCollectionAuth()`
+   is in place so wiring in the YAML side later is additive, not a redesign.
+   **Deferred:** collection-level default headers and collection vars (see
+   item 4 below for why headers specifically were not moved).
+3. ✅ Auth rework: `AuthType` gained `inherit`, `apikey`, `oauth1`, `ntlm`,
+   `wsse`, `akamai-edgegrid`; renamed `aws-sig-v4` → `awsv4`; protected
+   requests now default to `auth: inherit` (toggle via
+   `auth.inherit_from_collection`); public routes correctly get no auth block
+   at all, fixing §1.6.
+4. **Deferred:** moving default headers to the collection block. On
+   inspection, Bruno applies collection/folder-level headers to every child
+   request unconditionally, which would regress the existing per-method
+   `Content-Type` stripping for GET/DELETE — the current per-request
+   generation is actually more correct. Needs a design that separates
+   "shared across all requests" headers from "conditional per method" ones
+   before this is worth doing.
+
+**Delivered as:** `AuthType` rework, the auth middleware/inherit fix, and
+`collection.bru` generation. Same verification caveat as Phase 1 applies —
+run/rely on CI, not a local `composer test` in a restricted sandbox.
 
 ### Phase 3 — v4 native features
 

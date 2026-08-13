@@ -43,10 +43,13 @@ Open that folder in Bruno using `Open Collection`.
 - FormRequest body inference
 - Route filtering (middleware, prefix, include/exclude)
 - Multiple organization strategies (`prefix`, `controller`, `tag`, `none`)
-- Auth support (`none`, `bearer`, `basic`, `oauth2`)
+- Auth support (`none`, `bearer`, `basic`, `oauth2`), with protected routes
+  pointing at a shared collection-level auth block (`auth: inherit`)
+- Real Bruno path parameters (`:id` + `params:path`) and query parameters
+  inferred from FormRequest rules
 - Multi-environment generation (`Local`, `Staging`, `Production` by default)
 - Optional docs, tests, and scripts generation
-- `.bru` and YAML output support
+- `.bru` and OpenCollection YAML (`.yml`) output support
 - Deterministic, git-friendly generated files
 
 ## Usage

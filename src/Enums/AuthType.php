@@ -7,9 +7,15 @@ namespace ShahGhasiAdil\LaravelBrunoGenerator\Enums;
 enum AuthType: string
 {
     case NONE = 'none';
+    case INHERIT = 'inherit';
     case BEARER = 'bearer';
     case BASIC = 'basic';
-    case OAUTH2 = 'oauth2';
     case DIGEST = 'digest';
-    case AWS_SIG_V4 = 'aws-sig-v4';
+    case APIKEY = 'apikey';
+    case OAUTH1 = 'oauth1';
+    case OAUTH2 = 'oauth2';
+    case AWS_SIG_V4 = 'awsv4';
+    case NTLM = 'ntlm';
+    case WSSE = 'wsse';
+    case AKAMAI_EDGEGRID = 'akamai-edgegrid';
 }

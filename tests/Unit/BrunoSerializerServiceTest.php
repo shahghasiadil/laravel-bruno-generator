@@ -52,6 +52,62 @@ describe('BrunoSerializerService', function () {
         expect($brunoJsonFile['content']->content)->toContain('"version": "1"');
     });
 
+    test('generates collection.bru when a collection auth block is present', function () {
+        $metadata = new CollectionMetadata('Test API', '1');
+        $environments = new EnvironmentCollection(collect());
+        $auth = new AuthBlock(AuthType::BEARER, ['token' => '{{authToken}}']);
+        $structure = new CollectionStructure($metadata, collect(), collect(), $environments, $auth);
+
+        $files = $this->service->serialize($structure, $this->basePath);
+
+        $collectionAuthFile = $files->firstWhere(fn ($file) => str_ends_with($file['path']->relativePath, 'collection.bru'));
+
+        expect($collectionAuthFile)->not->toBeNull();
+        expect($collectionAuthFile['content']->type)->toBe(FileType::BRUNO_COLLECTION_AUTH);
+        expect($collectionAuthFile['content']->content)->toContain('auth:bearer {');
+        expect($collectionAuthFile['content']->content)->toContain('token: {{authToken}}');
+    });
+
+    test('does not generate collection.bru when there is no collection auth', function () {
+        $metadata = new CollectionMetadata('Test API', '1');
+        $environments = new EnvironmentCollection(collect());
+        $structure = new CollectionStructure($metadata, collect(), collect(), $environments);
+
+        $files = $this->service->serialize($structure, $this->basePath);
+
+        $collectionAuthFile = $files->firstWhere(fn ($file) => str_ends_with($file['path']->relativePath, 'collection.bru'));
+
+        expect($collectionAuthFile)->toBeNull();
+    });
+
+    test('renders auth: inherit on the request without a duplicated auth block', function () {
+        $request = new BrunoRequest(
+            name: 'Get Users',
+            description: 'Test',
+            sequence: 1,
+            method: 'GET',
+            url: '{{baseUrl}}/api/users',
+            headers: [],
+            queryParams: [],
+            pathVariables: [],
+            body: null,
+            auth: new AuthBlock(AuthType::INHERIT, []),
+            group: null,
+            controller: null,
+            tags: [],
+        );
+
+        $metadata = new CollectionMetadata('Test API', '1');
+        $environments = new EnvironmentCollection(collect());
+        $structure = new CollectionStructure($metadata, collect(), collect([$request]), $environments);
+
+        $files = $this->service->serialize($structure, $this->basePath);
+        $bruFile = $files->first(fn ($file) => $file['content']->type === FileType::BRUNO_REQUEST);
+
+        expect($bruFile['content']->content)->toContain('auth: inherit');
+        expect($bruFile['content']->content)->not->toContain('auth:inherit {');
+    });
+
     test('generates environment files', function () {
         $metadata = new CollectionMetadata('Test API', '1');
         $environments = new EnvironmentCollection(collect([

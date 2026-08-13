@@ -175,13 +175,19 @@ return [
         // Include auth block in requests
         'include_auth' => true,
 
-        // Routes requiring auth (middleware detection)
+        // Routes requiring auth (middleware detection). Routes without a
+        // matching middleware are generated with no auth block (public).
         'auth_middleware' => [
             'auth:sanctum',
             'auth:api',
             'auth',
             'jwt.auth',
         ],
+
+        // Protected requests point at the collection-level auth block
+        // (auth: inherit) instead of repeating credentials in every file.
+        // Set to false to inline full credentials on every protected request.
+        'inherit_from_collection' => true,
     ],
 
     /*

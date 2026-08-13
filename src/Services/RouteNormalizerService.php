@@ -301,21 +301,27 @@ final class RouteNormalizerService implements RouteNormalizerInterface
         }
 
         $authMode = $this->config['auth']['mode'] ?? 'bearer';
-        $authMiddleware = $this->config['auth']['auth_middleware'] ?? [];
 
-        // Check if route has auth middleware
-        $hasAuth = ! empty(array_intersect($route->middleware, $authMiddleware));
-
-        if (! $hasAuth && $authMode === 'none') {
+        if ($authMode === 'none') {
             return null;
         }
 
-        // If route has auth middleware or mode is not 'none', include auth block
-        if ($hasAuth || $authMode !== 'none') {
-            return $this->createAuthBlock($authMode);
+        // Only protect requests whose route actually carries auth middleware;
+        // everything else is left without an auth block (public route).
+        $authMiddleware = $this->config['auth']['auth_middleware'] ?? [];
+        $hasAuth = ! empty(array_intersect($route->middleware, $authMiddleware));
+
+        if (! $hasAuth) {
+            return null;
         }
 
-        return null;
+        // By default, protected requests point at the collection-level auth
+        // block instead of repeating full credentials in every file.
+        if ($this->config['auth']['inherit_from_collection'] ?? true) {
+            return new AuthBlock(type: AuthType::INHERIT, config: []);
+        }
+
+        return $this->createAuthBlock($authMode);
     }
 
     /**

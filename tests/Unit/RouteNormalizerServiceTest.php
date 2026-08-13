@@ -228,7 +228,7 @@ describe('RouteNormalizerService', function () {
         expect($requests->first()->headers)->toHaveKey('Content-Type');
     });
 
-    test('generates auth block for protected routes', function () {
+    test('generates an inherit auth block for protected routes by default', function () {
         $routes = collect([
             new RouteInfo(
                 uri: 'api/users',
@@ -247,7 +247,54 @@ describe('RouteNormalizerService', function () {
         $requests = $this->service->normalize($routes);
 
         expect($requests->first()->auth)->not->toBeNull();
+        expect($requests->first()->auth->type)->toBe(AuthType::INHERIT);
+    });
+
+    test('generates full inline auth when inherit_from_collection is disabled', function () {
+        $config = $this->config;
+        $config['auth']['inherit_from_collection'] = false;
+        $service = new RouteNormalizerService($this->formRequestParser, $config);
+
+        $routes = collect([
+            new RouteInfo(
+                uri: 'api/users',
+                methods: ['GET'],
+                name: 'users.index',
+                action: 'UserController@index',
+                middleware: ['api', 'auth:sanctum'],
+                domain: null,
+                parameters: [],
+                controller: 'UserController',
+                controllerMethod: 'index',
+                isFallback: false,
+            ),
+        ]);
+
+        $requests = $service->normalize($routes);
+
         expect($requests->first()->auth->type)->toBe(AuthType::BEARER);
+        expect($requests->first()->auth->config)->toBe(['token' => '{{authToken}}']);
+    });
+
+    test('does not generate auth for routes without auth middleware, even when a mode is configured', function () {
+        $routes = collect([
+            new RouteInfo(
+                uri: 'api/users',
+                methods: ['GET'],
+                name: 'users.index',
+                action: 'UserController@index',
+                middleware: ['api'],
+                domain: null,
+                parameters: [],
+                controller: 'UserController',
+                controllerMethod: 'index',
+                isFallback: false,
+            ),
+        ]);
+
+        $requests = $this->service->normalize($routes);
+
+        expect($requests->first()->auth)->toBeNull();
     });
 
     test('does not generate auth for public routes', function () {

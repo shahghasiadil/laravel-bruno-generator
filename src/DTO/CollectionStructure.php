@@ -17,6 +17,7 @@ final readonly class CollectionStructure
         public Collection $folders,
         public Collection $rootRequests,
         public EnvironmentCollection $environments,
+        public ?AuthBlock $auth = null,
     ) {}
 
     public static function create(
@@ -39,6 +40,11 @@ final readonly class CollectionStructure
     public function hasRootRequests(): bool
     {
         return $this->rootRequests->isNotEmpty();
+    }
+
+    public function hasAuth(): bool
+    {
+        return $this->auth !== null && ! $this->auth->isNone();
     }
 
     public function totalRequests(): int

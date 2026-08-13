@@ -90,7 +90,7 @@ final class FormRequestParserService
             $rulesMethod->setAccessible(true);
             $rules = $rulesMethod->invoke($instance);
 
-            if (! is_array($rules) || empty($rules)) {
+            if (! is_array($rules) || $rules === []) {
                 return [];
             }
 

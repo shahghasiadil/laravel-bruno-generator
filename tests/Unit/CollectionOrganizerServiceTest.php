@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use ShahGhasiAdil\LaravelBrunoGenerator\DTO\BrunoRequest;
 use ShahGhasiAdil\LaravelBrunoGenerator\DTO\RequestSettings;
+use ShahGhasiAdil\LaravelBrunoGenerator\Enums\AuthType;
 use ShahGhasiAdil\LaravelBrunoGenerator\Enums\GroupStrategy;
 use ShahGhasiAdil\LaravelBrunoGenerator\Services\CollectionOrganizerService;
 
@@ -385,5 +386,34 @@ describe('CollectionOrganizerService', function () {
         $structure = $this->service->organize($requests, GroupStrategy::NONE);
 
         expect($structure->rootRequests->first()->settings)->toBe($settings);
+    });
+
+    test('builds a collection-level bearer auth block by default', function () {
+        $config = array_merge($this->config, [
+            'auth' => [
+                'mode' => 'bearer',
+                'include_auth' => true,
+                'bearer_token_var' => 'authToken',
+            ],
+        ]);
+
+        $service = new CollectionOrganizerService($config);
+        $structure = $service->organize(collect(), GroupStrategy::NONE);
+
+        expect($structure->hasAuth())->toBeTrue();
+        expect($structure->auth->type)->toBe(AuthType::BEARER);
+        expect($structure->auth->config)->toBe(['token' => '{{authToken}}']);
+    });
+
+    test('omits the collection auth block when auth mode is none', function () {
+        $config = array_merge($this->config, [
+            'auth' => ['mode' => 'none', 'include_auth' => true],
+        ]);
+
+        $service = new CollectionOrganizerService($config);
+        $structure = $service->organize(collect(), GroupStrategy::NONE);
+
+        expect($structure->hasAuth())->toBeFalse();
+        expect($structure->auth)->toBeNull();
     });
 });

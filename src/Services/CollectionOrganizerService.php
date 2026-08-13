@@ -6,12 +6,14 @@ namespace ShahGhasiAdil\LaravelBrunoGenerator\Services;
 
 use Illuminate\Support\Collection;
 use ShahGhasiAdil\LaravelBrunoGenerator\Contracts\CollectionOrganizerInterface;
+use ShahGhasiAdil\LaravelBrunoGenerator\DTO\AuthBlock;
 use ShahGhasiAdil\LaravelBrunoGenerator\DTO\BrunoRequest;
 use ShahGhasiAdil\LaravelBrunoGenerator\DTO\CollectionMetadata;
 use ShahGhasiAdil\LaravelBrunoGenerator\DTO\CollectionStructure;
 use ShahGhasiAdil\LaravelBrunoGenerator\DTO\EnvironmentCollection;
 use ShahGhasiAdil\LaravelBrunoGenerator\DTO\EnvironmentConfig;
 use ShahGhasiAdil\LaravelBrunoGenerator\DTO\FolderNode;
+use ShahGhasiAdil\LaravelBrunoGenerator\Enums\AuthType;
 use ShahGhasiAdil\LaravelBrunoGenerator\Enums\GroupStrategy;
 
 final class CollectionOrganizerService implements CollectionOrganizerInterface
@@ -65,7 +67,48 @@ final class CollectionOrganizerService implements CollectionOrganizerInterface
             folders: $folders,
             rootRequests: $rootRequests,
             environments: $environments,
+            auth: $this->createCollectionAuth(),
         );
+    }
+
+    /**
+     * Build the collection-level auth block that requests with `auth: inherit`
+     * resolve against.
+     */
+    private function createCollectionAuth(): ?AuthBlock
+    {
+        if (! ($this->config['auth']['include_auth'] ?? true)) {
+            return null;
+        }
+
+        $mode = $this->config['auth']['mode'] ?? 'bearer';
+
+        $type = match ($mode) {
+            'bearer' => AuthType::BEARER,
+            'basic' => AuthType::BASIC,
+            'oauth2' => AuthType::OAUTH2,
+            default => AuthType::NONE,
+        };
+
+        if ($type === AuthType::NONE) {
+            return null;
+        }
+
+        $config = match ($type) {
+            AuthType::BEARER => [
+                'token' => '{{'.($this->config['auth']['bearer_token_var'] ?? 'authToken').'}}',
+            ],
+            AuthType::BASIC => [
+                'username' => '{{username}}',
+                'password' => '{{password}}',
+            ],
+            AuthType::OAUTH2 => [
+                'accessToken' => '{{accessToken}}',
+            ],
+            default => [],
+        };
+
+        return new AuthBlock(type: $type, config: $config);
     }
 
     /**

@@ -163,12 +163,6 @@ parameters:
 			path: src/Services/RouteNormalizerService.php
 
 		-
-			message: '#^Method ShahGhasiAdil\\LaravelBrunoGenerator\\Services\\RouteNormalizerService\:\:buildUrl\(\) should return string but returns string\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Services/RouteNormalizerService.php
-
-		-
 			message: '#^Only booleans are allowed in a negated boolean, mixed given\.$#'
 			identifier: booleanNot.exprNotBoolean
 			count: 4

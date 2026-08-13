@@ -58,6 +58,21 @@ final class BrunoSerializerService implements BrunoSerializerInterface
             ),
         ]);
 
+        // Add collection-level auth file, when the format supports it
+        if ($structure->hasAuth() && $structure->auth !== null) {
+            $collectionAuth = $this->formatSerializer->serializeCollectionAuth($structure->auth);
+
+            if ($collectionAuth !== null) {
+                $files->push([
+                    'path' => FilePath::create($basePath, 'collection'.$this->formatSerializer->getFileExtension()),
+                    'content' => new FileContent(
+                        content: $collectionAuth,
+                        type: FileType::BRUNO_COLLECTION_AUTH,
+                    ),
+                ]);
+            }
+        }
+
         // Add environment files
         foreach ($structure->environments->environments as $environment) {
             $extension = $this->formatSerializer->getFileExtension();
@@ -73,7 +88,7 @@ final class BrunoSerializerService implements BrunoSerializerInterface
         // Add root requests
         foreach ($structure->rootRequests as $request) {
             $filename = $this->generateFilename($request);
-            $fileType = $this->formatSerializer->getFileExtension() === '.yaml'
+            $fileType = $this->formatSerializer->getFileExtension() === '.yml'
                 ? FileType::BRUNO_YAML_REQUEST
                 : FileType::BRUNO_REQUEST;
 
@@ -115,7 +130,7 @@ final class BrunoSerializerService implements BrunoSerializerInterface
         // Serialize requests in this folder
         foreach ($folder->requests as $request) {
             $filename = $this->generateFilename($request);
-            $fileType = $this->formatSerializer->getFileExtension() === '.yaml'
+            $fileType = $this->formatSerializer->getFileExtension() === '.yml'
                 ? FileType::BRUNO_YAML_REQUEST
                 : FileType::BRUNO_REQUEST;
 

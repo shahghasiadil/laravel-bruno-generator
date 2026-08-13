@@ -99,8 +99,8 @@ final class YamlFormatSerializer implements FormatSerializerInterface
             $http['body'] = $this->serializeBody($request->body);
         }
 
-        if ($request->hasAuth() && $request->auth !== null) {
-            $http['auth'] = $this->serializeAuth($request->auth);
+        if ($request->auth !== null && ! $request->auth->isNone()) {
+            $http['auth'] = $request->auth->isInherit() ? 'inherit' : $this->serializeAuth($request->auth);
         }
 
         return $http;
@@ -236,6 +236,16 @@ final class YamlFormatSerializer implements FormatSerializerInterface
         $indentSpaces = $this->config['advanced']['yaml_options']['indent_spaces'] ?? 2;
 
         return Yaml::dump($data, 4, $indentSpaces);
+    }
+
+    /**
+     * Collection-level auth for YAML collections needs the (currently
+     * unverified) opencollection.yml collection-root schema; not yet
+     * implemented. See ROADMAP.md Phase 2.
+     */
+    public function serializeCollectionAuth(AuthBlock $auth): ?string
+    {
+        return null;
     }
 
     public function getFileExtension(): string
