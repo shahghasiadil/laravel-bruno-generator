@@ -14,6 +14,9 @@ beforeEach(function () {
     // Configure output path
     Config::set('bruno-generator.output_path', 'test-bruno-'.uniqid());
     Config::set('bruno-generator.collection_name', 'Test API');
+    // This suite asserts .bru-specific output; pin the format explicitly
+    // rather than relying on the package's default (which is 'yaml').
+    Config::set('bruno-generator.output_format', 'bru');
 
     // Setup test routes
     Route::middleware(['api'])
@@ -240,6 +243,18 @@ describe('BrunoGenerateCommand', function () {
 
         $brunoJson = json_decode($this->filesystem->get($collectionPath.'/bruno.json'), true);
         expect($brunoJson['name'])->toBe('Custom API');
+    });
+
+    test('honors the configured output_format when --format is not passed', function () {
+        Config::set('bruno-generator.output_format', 'yaml');
+
+        $this->artisan('bruno:generate', ['--force' => true])
+            ->assertSuccessful();
+
+        $collectionPath = base_path(Config::get('bruno-generator.output_path').'/Test-API');
+        $ymlFiles = $this->filesystem->glob($collectionPath.'/**/*.yml');
+
+        expect($ymlFiles)->not->toBeEmpty();
     });
 
     test('handles --exclude-prefix option', function () {

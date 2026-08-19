@@ -5,6 +5,22 @@ declare(strict_types=1);
 return [
     /*
     |--------------------------------------------------------------------------
+    | Bruno Compatibility
+    |--------------------------------------------------------------------------
+    |
+    | Target Bruno version for features that changed shape across major
+    | versions. 'v4' emits @description annotations (a v4-only .bru addition;
+    | older Bruno versions may not parse them). 'v3' suppresses them for
+    | collections that still need to open in Bruno 3.x.
+    |
+    | Environment Variables:
+    | - BRUNO_COMPATIBILITY: Target Bruno version (v3 or v4)
+    |
+    */
+    'bruno_compatibility' => env('BRUNO_COMPATIBILITY', 'v4'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Collection Output Settings
     |--------------------------------------------------------------------------
     |
@@ -19,7 +35,7 @@ return [
     */
     'output_path' => env('BRUNO_OUTPUT_PATH', 'bruno/collections'),
     'collection_name' => env('BRUNO_COLLECTION_NAME', 'Laravel API'),
-    'output_format' => env('BRUNO_OUTPUT_FORMAT', 'bru'),
+    'output_format' => env('BRUNO_OUTPUT_FORMAT', 'yaml'),
 
     /*
     |--------------------------------------------------------------------------
@@ -124,10 +140,15 @@ return [
         // Generate example values for body fields
         'generate_example_values' => true,
 
-        // Convert route parameters to Bruno variables ({id} -> {{id}})
+        // Convert Laravel route parameters ({id}) into Bruno path parameters
         'parameterize_route_params' => true,
 
-        // Generate query parameter examples
+        // Path parameter style when parameterize_route_params is enabled:
+        // - 'colon': /users/:id + a params:path block (Bruno's native path param convention)
+        // - 'double_brace': /users/{{id}} (legacy; requires the variable to be defined elsewhere)
+        'path_param_style' => 'colon',
+
+        // Generate query parameter examples from FormRequest rules on GET/HEAD routes
         'generate_query_params' => true,
 
         // Include common headers
@@ -170,13 +191,19 @@ return [
         // Include auth block in requests
         'include_auth' => true,
 
-        // Routes requiring auth (middleware detection)
+        // Routes requiring auth (middleware detection). Routes without a
+        // matching middleware are generated with no auth block (public).
         'auth_middleware' => [
             'auth:sanctum',
             'auth:api',
             'auth',
             'jwt.auth',
         ],
+
+        // Protected requests point at the collection-level auth block
+        // (auth: inherit) instead of repeating credentials in every file.
+        // Set to false to inline full credentials on every protected request.
+        'inherit_from_collection' => true,
     ],
 
     /*
@@ -210,6 +237,16 @@ return [
     |     'authToken' => '',
     | ],
     |
+    | A variable can also be an array for finer control over its value,
+    | description, and whether it's treated as a secret (in addition to name
+    | matching against secrets.variable_names below):
+    |
+    | 'apiKey' => [
+    |     'value' => env('STAGING_API_KEY', ''),
+    |     'description' => 'API key issued by the staging gateway',
+    |     'secret' => true,
+    | ],
+    |
     */
     'environments' => [
         'Local' => [
@@ -224,6 +261,31 @@ return [
             'baseUrl' => env('PRODUCTION_URL', 'https://api.example.com'),
             'authToken' => '',
         ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Secrets
+    |--------------------------------------------------------------------------
+    |
+    | Environment variables whose name appears in this list are treated as
+    | secret: their value is never written to the generated environment file.
+    | In .bru output they're listed by name only in a vars:secret block; in
+    | YAML output they get secret: true and an empty value. Bruno manages the
+    | actual value separately (OS keychain, falling back to AES256).
+    |
+    | This matters from Bruno v4 onward: scripts that call bru.setEnvVar()
+    | now persist to disk by default (previously in-memory only), so tokens
+    | captured by a generated login script should target a variable name
+    | listed here to avoid ending up committed in plaintext.
+    |
+    | A variable can also opt in/out of this per-environment via its own
+    | 'secret' key (see the environments section above), which takes
+    | precedence over this list.
+    |
+    */
+    'secrets' => [
+        'variable_names' => ['authToken'],
     ],
 
     /*

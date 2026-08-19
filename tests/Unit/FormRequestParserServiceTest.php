@@ -235,4 +235,91 @@ describe('FormRequestParserService', function () {
 
         expect(strlen($body->content['short_text']))->toBeLessThanOrEqual(10);
     });
+
+    test('uses the first allowed value for an in: rule', function () {
+        $class = new class extends FormRequest
+        {
+            public function rules(): array
+            {
+                return [
+                    'status' => 'required|in:draft,published,archived',
+                ];
+            }
+        };
+
+        $body = $this->service->parse(get_class($class));
+
+        expect($body->content['status'])->toBe('draft');
+    });
+
+    test('uses the lower bound of a between: rule for integers', function () {
+        $class = new class extends FormRequest
+        {
+            public function rules(): array
+            {
+                return [
+                    'quantity' => 'integer|between:5,20',
+                ];
+            }
+        };
+
+        $body = $this->service->parse(get_class($class));
+
+        expect($body->content['quantity'])->toBe(5);
+    });
+
+    test('uses the lower bound of a between: rule for numerics', function () {
+        $class = new class extends FormRequest
+        {
+            public function rules(): array
+            {
+                return [
+                    'weight' => 'numeric|between:2.5,10',
+                ];
+            }
+        };
+
+        $body = $this->service->parse(get_class($class));
+
+        expect($body->content['weight'])->toBe(2.5);
+    });
+
+    test('selects multipart-form body type when a file field is present', function () {
+        $class = new class extends FormRequest
+        {
+            public function rules(): array
+            {
+                return [
+                    'title' => 'required|string',
+                    'attachment' => 'required|file|max:2048',
+                ];
+            }
+        };
+
+        $body = $this->service->parse(get_class($class));
+
+        expect($body->type)->toBe(BodyType::MULTIPART_FORM);
+    });
+
+    test('selects multipart-form body type when an image field is present', function () {
+        $class = new class extends FormRequest
+        {
+            public function rules(): array
+            {
+                return [
+                    'avatar' => 'required|image',
+                ];
+            }
+        };
+
+        $body = $this->service->parse(get_class($class));
+
+        expect($body->type)->toBe(BodyType::MULTIPART_FORM);
+    });
+
+    test('keeps JSON body type when there is no file/image field', function () {
+        $body = $this->service->parse(SampleFormRequest::class);
+
+        expect($body->type)->toBe(BodyType::JSON);
+    });
 });

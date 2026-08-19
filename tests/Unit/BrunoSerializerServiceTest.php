@@ -8,6 +8,7 @@ use ShahGhasiAdil\LaravelBrunoGenerator\DTO\CollectionMetadata;
 use ShahGhasiAdil\LaravelBrunoGenerator\DTO\CollectionStructure;
 use ShahGhasiAdil\LaravelBrunoGenerator\DTO\EnvironmentCollection;
 use ShahGhasiAdil\LaravelBrunoGenerator\DTO\EnvironmentConfig;
+use ShahGhasiAdil\LaravelBrunoGenerator\DTO\EnvironmentVariable;
 use ShahGhasiAdil\LaravelBrunoGenerator\DTO\FolderNode;
 use ShahGhasiAdil\LaravelBrunoGenerator\DTO\RequestBody;
 use ShahGhasiAdil\LaravelBrunoGenerator\Enums\AuthType;
@@ -52,11 +53,71 @@ describe('BrunoSerializerService', function () {
         expect($brunoJsonFile['content']->content)->toContain('"version": "1"');
     });
 
+    test('generates collection.bru when a collection auth block is present', function () {
+        $metadata = new CollectionMetadata('Test API', '1');
+        $environments = new EnvironmentCollection(collect());
+        $auth = new AuthBlock(AuthType::BEARER, ['token' => '{{authToken}}']);
+        $structure = new CollectionStructure($metadata, collect(), collect(), $environments, $auth);
+
+        $files = $this->service->serialize($structure, $this->basePath);
+
+        $collectionAuthFile = $files->firstWhere(fn ($file) => str_ends_with($file['path']->relativePath, 'collection.bru'));
+
+        expect($collectionAuthFile)->not->toBeNull();
+        expect($collectionAuthFile['content']->type)->toBe(FileType::BRUNO_COLLECTION_AUTH);
+        expect($collectionAuthFile['content']->content)->toContain('auth:bearer {');
+        expect($collectionAuthFile['content']->content)->toContain('token: {{authToken}}');
+    });
+
+    test('does not generate collection.bru when there is no collection auth', function () {
+        $metadata = new CollectionMetadata('Test API', '1');
+        $environments = new EnvironmentCollection(collect());
+        $structure = new CollectionStructure($metadata, collect(), collect(), $environments);
+
+        $files = $this->service->serialize($structure, $this->basePath);
+
+        $collectionAuthFile = $files->firstWhere(fn ($file) => str_ends_with($file['path']->relativePath, 'collection.bru'));
+
+        expect($collectionAuthFile)->toBeNull();
+    });
+
+    test('renders auth: inherit on the request without a duplicated auth block', function () {
+        $request = new BrunoRequest(
+            name: 'Get Users',
+            description: 'Test',
+            sequence: 1,
+            method: 'GET',
+            url: '{{baseUrl}}/api/users',
+            headers: [],
+            queryParams: [],
+            pathVariables: [],
+            body: null,
+            auth: new AuthBlock(AuthType::INHERIT, []),
+            group: null,
+            controller: null,
+            tags: [],
+        );
+
+        $metadata = new CollectionMetadata('Test API', '1');
+        $environments = new EnvironmentCollection(collect());
+        $structure = new CollectionStructure($metadata, collect(), collect([$request]), $environments);
+
+        $files = $this->service->serialize($structure, $this->basePath);
+        $bruFile = $files->first(fn ($file) => $file['content']->type === FileType::BRUNO_REQUEST);
+
+        expect($bruFile['content']->content)->toContain('auth: inherit');
+        expect($bruFile['content']->content)->not->toContain('auth:inherit {');
+    });
+
     test('generates environment files', function () {
         $metadata = new CollectionMetadata('Test API', '1');
         $environments = new EnvironmentCollection(collect([
-            'Local' => new EnvironmentConfig('Local', ['baseUrl' => 'http://localhost']),
-            'Production' => new EnvironmentConfig('Production', ['baseUrl' => 'https://api.example.com']),
+            'Local' => new EnvironmentConfig('Local', [
+                new EnvironmentVariable(name: 'baseUrl', value: 'http://localhost'),
+            ]),
+            'Production' => new EnvironmentConfig('Production', [
+                new EnvironmentVariable(name: 'baseUrl', value: 'https://api.example.com'),
+            ]),
         ]));
         $structure = new CollectionStructure($metadata, collect(), collect(), $environments);
 
@@ -66,6 +127,41 @@ describe('BrunoSerializerService', function () {
 
         expect($envFiles)->toHaveCount(2);
         expect($envFiles->pluck('path')->map->basename()->all())->toContain('Local.bru', 'Production.bru');
+    });
+
+    test('writes secret environment variables as a name-only vars:secret block', function () {
+        $metadata = new CollectionMetadata('Test API', '1');
+        $environments = new EnvironmentCollection(collect([
+            'Local' => new EnvironmentConfig('Local', [
+                new EnvironmentVariable(name: 'baseUrl', value: 'http://localhost'),
+                new EnvironmentVariable(name: 'authToken', value: 'super-secret', secret: true),
+            ]),
+        ]));
+        $structure = new CollectionStructure($metadata, collect(), collect(), $environments);
+
+        $files = $this->service->serialize($structure, $this->basePath);
+        $envFile = $files->first(fn ($file) => str_ends_with($file['path']->relativePath, 'Local.bru'));
+
+        expect($envFile['content']->content)->toContain('vars {');
+        expect($envFile['content']->content)->toContain('baseUrl: http://localhost');
+        expect($envFile['content']->content)->not->toContain('super-secret');
+        expect($envFile['content']->content)->toContain('vars:secret [');
+        expect($envFile['content']->content)->toContain('authToken');
+    });
+
+    test('writes @description above described environment variables', function () {
+        $metadata = new CollectionMetadata('Test API', '1');
+        $environments = new EnvironmentCollection(collect([
+            'Local' => new EnvironmentConfig('Local', [
+                new EnvironmentVariable(name: 'baseUrl', value: 'http://localhost', description: 'Local dev server'),
+            ]),
+        ]));
+        $structure = new CollectionStructure($metadata, collect(), collect(), $environments);
+
+        $files = $this->service->serialize($structure, $this->basePath);
+        $envFile = $files->first(fn ($file) => str_ends_with($file['path']->relativePath, 'Local.bru'));
+
+        expect($envFile['content']->content)->toContain("@description('''Local dev server''')");
     });
 
     test('serializes basic .bru request file', function () {
@@ -163,6 +259,75 @@ describe('BrunoSerializerService', function () {
         expect($bruFile['content']->content)->toContain('body:json {');
         expect($bruFile['content']->content)->toContain('"name": "John Doe"');
         expect($bruFile['content']->content)->toContain('"email": "john@example.com"');
+    });
+
+    test('includes multipart-form body block when present', function () {
+        $body = new RequestBody(
+            type: BodyType::MULTIPART_FORM,
+            content: ['title' => 'Report', 'attachment' => 'file.pdf'],
+            raw: null,
+        );
+
+        $request = new BrunoRequest(
+            name: 'Upload Report',
+            description: 'Test',
+            sequence: 1,
+            method: 'POST',
+            url: '{{baseUrl}}/api/reports',
+            headers: [],
+            queryParams: [],
+            pathVariables: [],
+            body: $body,
+            auth: null,
+            group: null,
+            controller: null,
+            tags: [],
+        );
+
+        $metadata = new CollectionMetadata('Test API', '1');
+        $environments = new EnvironmentCollection(collect());
+        $structure = new CollectionStructure($metadata, collect(), collect([$request]), $environments);
+
+        $files = $this->service->serialize($structure, $this->basePath);
+        $bruFile = $files->first(fn ($file) => $file['content']->type === FileType::BRUNO_REQUEST);
+
+        expect($bruFile['content']->content)->toContain('body:multipart-form {');
+        expect($bruFile['content']->content)->toContain('title: Report');
+        expect($bruFile['content']->content)->toContain('attachment: file.pdf');
+    });
+
+    test('JSON-encodes nested array values in a multipart body instead of casting to a literal string', function () {
+        $body = new RequestBody(
+            type: BodyType::MULTIPART_FORM,
+            content: ['title' => 'Report', 'tags' => ['a', 'b']],
+            raw: null,
+        );
+
+        $request = new BrunoRequest(
+            name: 'Upload Report',
+            description: 'Test',
+            sequence: 1,
+            method: 'POST',
+            url: '{{baseUrl}}/api/reports',
+            headers: [],
+            queryParams: [],
+            pathVariables: [],
+            body: $body,
+            auth: null,
+            group: null,
+            controller: null,
+            tags: [],
+        );
+
+        $metadata = new CollectionMetadata('Test API', '1');
+        $environments = new EnvironmentCollection(collect());
+        $structure = new CollectionStructure($metadata, collect(), collect([$request]), $environments);
+
+        $files = $this->service->serialize($structure, $this->basePath);
+        $bruFile = $files->first(fn ($file) => $file['content']->type === FileType::BRUNO_REQUEST);
+
+        expect($bruFile['content']->content)->toContain('tags: ["a","b"]');
+        expect($bruFile['content']->content)->not->toContain('tags: Array');
     });
 
     test('includes auth block when present', function () {

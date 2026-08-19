@@ -48,6 +48,80 @@ final class FormRequestParserService
     }
 
     /**
+     * Infer flat query parameters from a route's FormRequest rules.
+     *
+     * @return array<string, string>
+     */
+    public function parseQueryParamsFromRoute(RouteInfo $route): array
+    {
+        if ($route->controller === null || $route->controllerMethod === null) {
+            return [];
+        }
+
+        try {
+            $formRequestClass = $this->findFormRequestClass($route);
+
+            if ($formRequestClass === null) {
+                return [];
+            }
+
+            return $this->parseQueryParams($formRequestClass);
+        } catch (\Throwable $e) {
+            return [];
+        }
+    }
+
+    /**
+     * Convert a FormRequest's top-level, non-array rules into query params.
+     *
+     * @return array<string, string>
+     */
+    public function parseQueryParams(string $formRequestClass): array
+    {
+        if (! class_exists($formRequestClass) || ! is_subclass_of($formRequestClass, FormRequest::class)) {
+            return [];
+        }
+
+        try {
+            $reflection = new ReflectionClass($formRequestClass);
+            $instance = $reflection->newInstanceWithoutConstructor();
+
+            $rulesMethod = $reflection->getMethod('rules');
+            $rulesMethod->setAccessible(true);
+            $rules = $rulesMethod->invoke($instance);
+
+            if (! is_array($rules) || $rules === []) {
+                return [];
+            }
+
+            $params = [];
+
+            foreach ($rules as $field => $fieldRules) {
+                // Skip nested/array notation fields; query params are flat.
+                if (! is_string($field) || str_contains($field, '.')) {
+                    continue;
+                }
+
+                if (! $this->shouldIncludeField($fieldRules)) {
+                    continue;
+                }
+
+                $value = $this->generateExampleValue($field, $fieldRules);
+
+                if (is_array($value)) {
+                    continue;
+                }
+
+                $params[$field] = is_bool($value) ? ($value ? 'true' : 'false') : (string) $value;
+            }
+
+            return $params;
+        } catch (\Throwable $e) {
+            return [];
+        }
+    }
+
+    /**
      * Find FormRequest class used by controller method.
      */
     private function findFormRequestClass(RouteInfo $route): ?string
@@ -134,13 +208,34 @@ final class FormRequestParserService
             $content = $this->rulesToExampleValues($rules);
 
             return new RequestBody(
-                type: BodyType::JSON,
+                type: $this->hasFileUploadField($rules) ? BodyType::MULTIPART_FORM : BodyType::JSON,
                 content: $content,
                 raw: null,
             );
         } catch (\Throwable $e) {
             throw FormRequestParseException::rulesParseFailed($formRequestClass, $e->getMessage());
         }
+    }
+
+    /**
+     * Determine whether any top-level field has a file/image rule, in which
+     * case the request body should be multipart-form rather than JSON.
+     *
+     * @param  array<string, mixed>  $rules
+     */
+    private function hasFileUploadField(array $rules): bool
+    {
+        foreach ($rules as $fieldRules) {
+            foreach ($this->normalizeRules($fieldRules) as $rule) {
+                $ruleLower = strtolower($rule);
+
+                if (str_starts_with($ruleLower, 'file') || str_starts_with($ruleLower, 'image')) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -250,6 +345,12 @@ final class FormRequestParserService
     private function generateExampleValue(string $field, mixed $rules): mixed
     {
         $ruleArray = $this->normalizeRules($rules);
+
+        $inValue = $this->firstInRuleValue($ruleArray);
+        if ($inValue !== null) {
+            return $inValue;
+        }
+
         $fieldType = $this->inferFieldType($field, $ruleArray);
 
         return match ($fieldType) {
@@ -367,6 +468,10 @@ final class FormRequestParserService
             if (preg_match('/min:(\d+)/', $rule, $matches)) {
                 return (int) $matches[1];
             }
+
+            if (preg_match('/between:(\d+),\d+/', $rule, $matches) === 1) {
+                return (int) $matches[1];
+            }
         }
 
         return 1;
@@ -383,9 +488,31 @@ final class FormRequestParserService
             if (preg_match('/min:([\d.]+)/', $rule, $matches)) {
                 return str_contains($matches[1], '.') ? (float) $matches[1] : (int) $matches[1];
             }
+
+            if (preg_match('/between:([\d.]+),[\d.]+/', $rule, $matches) === 1) {
+                return str_contains($matches[1], '.') ? (float) $matches[1] : (int) $matches[1];
+            }
         }
 
         return 0;
+    }
+
+    /**
+     * Extract the first allowed value from an `in:a,b,c` rule, if present.
+     *
+     * @param  array<int, string>  $rules
+     */
+    private function firstInRuleValue(array $rules): ?string
+    {
+        foreach ($rules as $rule) {
+            if (str_starts_with($rule, 'in:')) {
+                $values = explode(',', substr($rule, 3));
+
+                return $values[0] !== '' ? $values[0] : null;
+            }
+        }
+
+        return null;
     }
 
     /**

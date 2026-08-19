@@ -20,4 +20,9 @@ final readonly class AuthBlock
     {
         return $this->type === AuthType::NONE;
     }
+
+    public function isInherit(): bool
+    {
+        return $this->type === AuthType::INHERIT;
+    }
 }

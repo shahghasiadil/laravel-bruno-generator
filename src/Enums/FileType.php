@@ -8,6 +8,7 @@ enum FileType: string
 {
     case BRUNO_REQUEST = 'request';
     case BRUNO_COLLECTION = 'collection';
+    case BRUNO_COLLECTION_AUTH = 'collection_auth';
     case BRUNO_ENVIRONMENT = 'environment';
     case BRUNO_YAML_REQUEST = 'yaml_request';
 }

@@ -43,11 +43,17 @@ Open that folder in Bruno using `Open Collection`.
 - FormRequest body inference
 - Route filtering (middleware, prefix, include/exclude)
 - Multiple organization strategies (`prefix`, `controller`, `tag`, `none`)
-- Auth support (`none`, `bearer`, `basic`, `oauth2`)
+- Auth support (`none`, `bearer`, `basic`, `oauth2`), with protected routes
+  pointing at a shared collection-level auth block (`auth: inherit`)
+- Real Bruno path parameters (`:id` + `params:path`) and query parameters
+  inferred from FormRequest rules, with example values informed by
+  `where()` route constraints when present
 - Multi-environment generation (`Local`, `Staging`, `Production` by default)
 - Optional docs, tests, and scripts generation
-- `.bru` and YAML output support
+- `.bru` and OpenCollection YAML (`.yml`) output support
 - Deterministic, git-friendly generated files
+- `bruno:check` drift detection for CI — regenerates in memory and exits
+  non-zero if the committed collection is out of date
 
 ## Usage
 
@@ -100,6 +106,20 @@ Clear a custom path:
 ```bash
 php artisan bruno:clear path/to/collection --force
 ```
+
+Check whether the committed collection has drifted from what your routes
+currently produce (regenerates in memory, writes nothing, exits non-zero on
+drift — useful as a CI gate):
+
+```bash
+php artisan bruno:check
+```
+
+`bruno:check` accepts the same filtering/format options as `bruno:generate`
+(`--format`, `--output`, `--name`, `--api-only`, `--prefix`,
+`--exclude-prefix`, `--middleware`, `--exclude-middleware`, `--group-by`) so
+you can check the same slice of routes you'd generate. Add `--verbose` to
+list which files would be added, changed, or are orphaned on disk.
 
 ### All generate options
 
@@ -185,6 +205,14 @@ Example generated body:
 
 Nested rules like `user.name` and `user.email` are also supported.
 
+Other rules that shape the generated example:
+
+- `in:draft,published,archived` uses the first listed value (`draft`)
+- `between:5,20` on an integer/numeric field uses the lower bound (`5`),
+  same as `min:`
+- A `file` or `image` rule on any field switches the whole request to a
+  `multipart-form` body instead of JSON
+
 ## Output Formats
 
 Both output formats are supported:
@@ -216,6 +244,33 @@ Each environment contains values like `baseUrl` and `authToken` and can be switc
 
 You can add custom environments (for example `Development`, `QA`, `UAT`) in `config/bruno-generator.php`.
 
+### Secret variables
+
+Variable names listed in `secrets.variable_names` (`authToken` by default)
+are never written to the generated environment file — Bruno manages their
+real value separately (OS keychain, or AES256 as a fallback), and you set it
+through Bruno's environment UI after opening the collection. In `.bru`
+output this looks like a name-only `vars:secret [...]` block; in YAML output
+the variable gets `secret: true` and an empty `value`.
+
+Use the array shape to mark a custom variable as secret, or add a description:
+
+```php
+'environments' => [
+    'Staging' => [
+        'baseUrl' => env('STAGING_URL', 'https://staging.example.com'),
+        'apiKey' => [
+            'value' => env('STAGING_API_KEY', ''),
+            'description' => 'API key issued by the staging gateway',
+            'secret' => true,
+        ],
+    ],
+],
+```
+
+Descriptions are a Bruno 4 addition; set `bruno_compatibility` to `v3` to
+omit them if your collection needs to open in an older Bruno.
+
 ## Generated Structure
 
 Typical output:
@@ -237,7 +292,10 @@ bruno/collections/Laravel-API/
 - Keep route filters explicit in larger projects
 - Commit generated collections to track API changes
 - Keep environment URLs in `.env`
-- Do not commit real auth tokens
+- Let `authToken` (and other secrets) stay a secret variable rather than
+  disabling `secret: false` — its real value never gets written to disk
+- Run `php artisan bruno:check` in CI to catch a committed collection that's
+  drifted from the routes it was generated from
 
 ## Testing
 

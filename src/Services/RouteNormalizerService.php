@@ -71,10 +71,10 @@ final class RouteNormalizerService implements RouteNormalizerInterface
         $name = $this->generateName($route, $method);
         $description = $this->generateDescription($route);
         $url = $this->buildUrl($route);
-        $headers = $this->buildHeaders($route, $method);
-        $queryParams = $this->extractQueryParams($route);
-        $pathVariables = $this->extractPathVariables($route);
         $body = $this->parseRequestBody($route, $method);
+        $headers = $this->buildHeaders($method, $body);
+        $queryParams = $this->extractQueryParams($route, $method);
+        $pathVariables = $this->extractPathVariables($route);
         $auth = $this->determineAuth($route);
         $group = $this->determineGroup($route);
         $docs = $this->extractPhpDocDocs($route);
@@ -164,15 +164,23 @@ final class RouteNormalizerService implements RouteNormalizerInterface
     private function buildUrl(RouteInfo $route): string
     {
         $baseUrlVar = $this->config['variables']['base_url_var'] ?? 'baseUrl';
-        $url = '{{'.$baseUrlVar.'}}/'.ltrim($route->uri, '/');
+        $uri = ltrim($route->uri, '/');
 
-        // Convert route parameters to Bruno variables
-        // Use negative lookbehind/lookahead to avoid matching {{baseUrl}}
         if ($this->config['request_generation']['parameterize_route_params'] ?? true) {
-            $url = preg_replace('/(?<!\{)\{([^}?]+)\??\}(?!\})/', '{{$1}}', $url);
+            $uri = $this->pathParamStyle() === 'double_brace'
+                ? (preg_replace('/\{([^}?]+)\??\}/', '{{$1}}', $uri) ?? $uri)
+                : (preg_replace('/\{([^}?]+)\??\}/', ':$1', $uri) ?? $uri);
         }
 
-        return $url;
+        return '{{'.$baseUrlVar.'}}/'.$uri;
+    }
+
+    /**
+     * Determine configured path parameter style.
+     */
+    private function pathParamStyle(): string
+    {
+        return $this->config['request_generation']['path_param_style'] ?? 'colon';
     }
 
     /**
@@ -180,7 +188,7 @@ final class RouteNormalizerService implements RouteNormalizerInterface
      *
      * @return array<string, string>
      */
-    private function buildHeaders(RouteInfo $route, string $method): array
+    private function buildHeaders(string $method, ?RequestBody $body): array
     {
         if (! ($this->config['request_generation']['include_default_headers'] ?? true)) {
             return [];
@@ -193,41 +201,73 @@ final class RouteNormalizerService implements RouteNormalizerInterface
             unset($headers['Content-Type']);
         }
 
+        // Multipart requests need a boundary the HTTP client generates at
+        // send time; a hardcoded Content-Type here would be wrong for the
+        // actual body and break multipart parsing.
+        if ($body !== null && $body->type === BodyType::MULTIPART_FORM) {
+            unset($headers['Content-Type']);
+        }
+
         return $headers;
     }
 
     /**
-     * Extract query parameters from route.
+     * Extract query parameters from route, inferred from FormRequest rules on
+     * GET/HEAD routes.
      *
      * @return array<string, string>
      */
-    private function extractQueryParams(RouteInfo $route): array
+    private function extractQueryParams(RouteInfo $route, string $method): array
     {
-        // This will be enhanced when FormRequest parsing is added
-        return [];
+        if (! ($this->config['request_generation']['generate_query_params'] ?? true)) {
+            return [];
+        }
+
+        if (! in_array(strtoupper($method), ['GET', 'HEAD'], true)) {
+            return [];
+        }
+
+        return $this->formRequestParser->parseQueryParamsFromRoute($route);
     }
 
     /**
-     * Extract path variables from route parameters.
+     * Extract path variables from route parameters, when the colon path
+     * parameter style is in use.
      *
      * @return array<string, string>
      */
     private function extractPathVariables(RouteInfo $route): array
     {
+        if (! ($this->config['request_generation']['parameterize_route_params'] ?? true)) {
+            return [];
+        }
+
+        if ($this->pathParamStyle() === 'double_brace') {
+            return [];
+        }
+
         $variables = [];
 
         foreach ($route->parameters as $paramName => $paramPattern) {
-            $variables[$paramName] = $this->generateExampleValue($paramName);
+            $variables[$paramName] = $this->generateExampleValue($paramName, $paramPattern);
         }
 
         return $variables;
     }
 
     /**
-     * Generate example value for parameter based on name.
+     * Generate example value for a route parameter. A where() constraint,
+     * when present, takes priority over the name-based heuristic.
      */
-    private function generateExampleValue(string $paramName): string
+    private function generateExampleValue(string $paramName, ?string $pattern = null): string
     {
+        if ($pattern !== null) {
+            $fromPattern = $this->generateExampleFromPattern($pattern);
+            if ($fromPattern !== null) {
+                return $fromPattern;
+            }
+        }
+
         $lowerName = strtolower($paramName);
 
         return match (true) {
@@ -238,6 +278,44 @@ final class RouteNormalizerService implements RouteNormalizerInterface
             str_contains($lowerName, 'token') => 'sample-token',
             default => 'value',
         };
+    }
+
+    /**
+     * Infer an example value from a route's where() regex constraint.
+     * Returns null when the pattern doesn't match a recognized shape, so the
+     * caller can fall back to the name-based heuristic.
+     */
+    private function generateExampleFromPattern(string $pattern): ?string
+    {
+        // Alternation of literal options, e.g. "(foo|bar|baz)" -> first option.
+        if (preg_match('/^\(([^()|]+(?:\|[^()|]+)+)\)$/', $pattern, $matches) === 1) {
+            $options = explode('|', $matches[1]);
+
+            return $options[0] !== '' ? $options[0] : null;
+        }
+
+        // Purely numeric constraint, e.g. "[0-9]+", "\d+", "[0-9]{1,10}".
+        if (preg_match('/^(\\\\d|\[0-9\])[+*]?(\{\d+(,\d*)?\})?$/', $pattern) === 1) {
+            return '1';
+        }
+
+        // UUID-shaped constraint.
+        if (stripos($pattern, '[0-9a-f]{8}') !== false || stripos($pattern, 'uuid') !== false) {
+            return '123e4567-e89b-12d3-a456-426614174000';
+        }
+
+        // Alphabetic/slug-shaped constraint, e.g. "[a-z-]+", "[a-zA-Z]+", "[a-z]{3,10}".
+        if (preg_match('/^\[([a-zA-Z\-]+)\](?:[+*]|\{\d+(,\d*)?\})?$/', $pattern, $matches) === 1) {
+            $charClass = $matches[1];
+            // A hyphen at the very start or end of a character class is a
+            // literal character; anywhere else (e.g. "a-z") it's a range
+            // operator, so the class doesn't actually allow a literal "-".
+            $allowsHyphen = str_starts_with($charClass, '-') || str_ends_with($charClass, '-');
+
+            return $allowsHyphen ? 'example-slug' : 'examplevalue';
+        }
+
+        return null;
     }
 
     /**
@@ -276,21 +354,31 @@ final class RouteNormalizerService implements RouteNormalizerInterface
         }
 
         $authMode = $this->config['auth']['mode'] ?? 'bearer';
-        $authMiddleware = $this->config['auth']['auth_middleware'] ?? [];
 
-        // Check if route has auth middleware
-        $hasAuth = ! empty(array_intersect($route->middleware, $authMiddleware));
-
-        if (! $hasAuth && $authMode === 'none') {
+        if ($authMode === 'none') {
             return null;
         }
 
-        // If route has auth middleware or mode is not 'none', include auth block
-        if ($hasAuth || $authMode !== 'none') {
-            return $this->createAuthBlock($authMode);
+        // Only protect requests whose route actually carries auth middleware;
+        // everything else is left without an auth block (public route).
+        $authMiddleware = $this->config['auth']['auth_middleware'] ?? [];
+        $hasAuth = ! empty(array_intersect($route->middleware, $authMiddleware));
+
+        if (! $hasAuth) {
+            return null;
         }
 
-        return null;
+        // By default, protected requests point at the collection-level auth
+        // block instead of repeating full credentials in every file. Only
+        // .bru currently serializes a collection-level auth file (collection.bru);
+        // YAML has no collection-root file to inherit from yet, so it always
+        // gets full inline credentials regardless of this setting.
+        $format = $this->config['output_format'] ?? 'bru';
+        if ($format === 'bru' && (bool) ($this->config['auth']['inherit_from_collection'] ?? true)) {
+            return new AuthBlock(type: AuthType::INHERIT, config: []);
+        }
+
+        return $this->createAuthBlock($authMode);
     }
 
     /**

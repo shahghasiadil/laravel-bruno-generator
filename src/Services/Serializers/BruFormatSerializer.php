@@ -7,6 +7,7 @@ namespace ShahGhasiAdil\LaravelBrunoGenerator\Services\Serializers;
 use ShahGhasiAdil\LaravelBrunoGenerator\Contracts\FormatSerializerInterface;
 use ShahGhasiAdil\LaravelBrunoGenerator\DTO\AuthBlock;
 use ShahGhasiAdil\LaravelBrunoGenerator\DTO\BrunoRequest;
+use ShahGhasiAdil\LaravelBrunoGenerator\DTO\EnvironmentVariable;
 use ShahGhasiAdil\LaravelBrunoGenerator\DTO\RequestBody;
 use ShahGhasiAdil\LaravelBrunoGenerator\DTO\RequestSettings;
 use ShahGhasiAdil\LaravelBrunoGenerator\Enums\BodyType;
@@ -23,14 +24,19 @@ final class BruFormatSerializer implements FormatSerializerInterface
         $blocks = [];
 
         // Meta block (required)
-        $blocks[] = $this->formatMetaBlock($request->name, $request->description, $request->sequence);
+        $blocks[] = $this->formatMetaBlock($request->name, $request->sequence, $request->tags);
 
         // HTTP method block (required)
         $blocks[] = $this->formatMethodBlock($request->method, $request->url, $request->body, $request->auth);
 
+        // Path params block
+        if ($request->hasPathVariables()) {
+            $blocks[] = $this->formatParamsBlock('path', $request->pathVariables);
+        }
+
         // Query params block
         if ($request->hasQueryParams()) {
-            $blocks[] = $this->formatParamsBlock($request->queryParams);
+            $blocks[] = $this->formatParamsBlock('query', $request->queryParams);
         }
 
         // Headers block
@@ -38,8 +44,8 @@ final class BruFormatSerializer implements FormatSerializerInterface
             $blocks[] = $this->formatHeadersBlock($request->headers);
         }
 
-        // Auth block
-        if ($request->hasAuth()) {
+        // Auth block (skipped for `inherit`, which has no config of its own)
+        if ($request->hasAuth() && $request->auth !== null && ! $request->auth->isInherit()) {
             $blocks[] = $this->formatAuthBlock($request->auth);
         }
 
@@ -77,21 +83,57 @@ final class BruFormatSerializer implements FormatSerializerInterface
     }
 
     /**
-     * Serialize environment .bru file.
+     * Serialize environment .bru file. Secret variables are written as
+     * name-only entries in a vars:secret block; their values are never
+     * written to disk.
      *
-     * @param  array<string, string>  $vars
+     * @param  array<int, EnvironmentVariable>  $vars
      */
     public function serializeEnvironment(string $name, array $vars): string
     {
         $lines = ['vars {'];
+        $secretNames = [];
 
-        foreach ($vars as $key => $value) {
-            $lines[] = "  {$key}: {$value}";
+        foreach ($vars as $var) {
+            if ($var->secret) {
+                $secretNames[] = $var->name;
+
+                continue;
+            }
+
+            if ($var->description !== null) {
+                $lines[] = "  @description('''{$var->description}''')";
+            }
+
+            $lines[] = "  {$var->name}: {$var->value}";
         }
 
         $lines[] = '}';
 
+        if ($secretNames !== []) {
+            $lines[] = '';
+            $lines[] = 'vars:secret [';
+            $lastIndex = count($secretNames) - 1;
+            foreach ($secretNames as $index => $secretName) {
+                $comma = $index < $lastIndex ? ',' : '';
+                $lines[] = "  {$secretName}{$comma}";
+            }
+            $lines[] = ']';
+        }
+
         return implode("\n", $lines)."\n";
+    }
+
+    /**
+     * Serialize the collection.bru auth block.
+     */
+    public function serializeCollectionAuth(AuthBlock $auth): ?string
+    {
+        if ($auth->isNone() || $auth->isInherit()) {
+            return null;
+        }
+
+        return $this->formatAuthBlock($auth)."\n";
     }
 
     public function getFileExtension(): string
@@ -101,16 +143,24 @@ final class BruFormatSerializer implements FormatSerializerInterface
 
     /**
      * Format meta block.
+     *
+     * @param  array<int, string>  $tags
      */
-    private function formatMetaBlock(string $name, string $desc, int $seq): string
+    private function formatMetaBlock(string $name, int $seq, array $tags = []): string
     {
-        return <<<BRU
-meta {
-  name: {$name}
-  type: http
-  seq: {$seq}
-}
-BRU;
+        $lines = ['meta {', "  name: {$name}", '  type: http', "  seq: {$seq}"];
+
+        if ($tags !== []) {
+            $lines[] = '  tags: [';
+            foreach ($tags as $tag) {
+                $lines[] = "    {$tag}";
+            }
+            $lines[] = '  ]';
+        }
+
+        $lines[] = '}';
+
+        return implode("\n", $lines);
     }
 
     /**
@@ -142,13 +192,13 @@ BRU;
     }
 
     /**
-     * Format query params block.
+     * Format a params block (query or path).
      *
      * @param  array<string, string>  $params
      */
-    private function formatParamsBlock(array $params): string
+    private function formatParamsBlock(string $type, array $params): string
     {
-        $lines = ['params:query {'];
+        $lines = ["params:{$type} {"];
 
         foreach ($params as $key => $value) {
             $lines[] = "  {$key}: {$value}";
@@ -231,10 +281,10 @@ body:json {
 BRU;
         }
 
-        if ($body->type === BodyType::FORM_URLENCODED && $body->content !== []) {
-            $lines = ['body:form-urlencoded {'];
+        if (in_array($body->type, [BodyType::FORM_URLENCODED, BodyType::MULTIPART_FORM], true) && $body->content !== []) {
+            $lines = ["body:{$bodyType} {"];
             foreach ($body->content as $key => $value) {
-                $lines[] = "  {$key}: {$value}";
+                $lines[] = "  {$key}: {$this->stringifyFieldValue($value)}";
             }
             $lines[] = '}';
 
@@ -313,5 +363,22 @@ BRU;
         $lines = explode("\n", $content);
 
         return implode("\n", array_map(fn ($line) => $indent.$line, $lines));
+    }
+
+    /**
+     * Stringify a form/multipart field value. Arrays and objects are
+     * JSON-encoded rather than interpolated, which would otherwise produce
+     * the literal string "Array" and a PHP warning for nested/array rules
+     * (e.g. `tags.*`, `user.name`) combined with a file/image field.
+     */
+    private function stringifyFieldValue(mixed $value): string
+    {
+        if (is_array($value)) {
+            $json = json_encode($value, JSON_UNESCAPED_SLASHES);
+
+            return $json === false ? '' : $json;
+        }
+
+        return (string) $value;
     }
 }

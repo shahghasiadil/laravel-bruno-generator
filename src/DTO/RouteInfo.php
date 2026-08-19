@@ -9,7 +9,7 @@ final readonly class RouteInfo
     /**
      * @param  array<int, string>  $methods
      * @param  array<int, string>  $middleware
-     * @param  array<string, string>  $parameters
+     * @param  array<string, string|null>  $parameters  Route parameter name => its where() regex constraint, or null when unconstrained.
      */
     public function __construct(
         public string $uri,

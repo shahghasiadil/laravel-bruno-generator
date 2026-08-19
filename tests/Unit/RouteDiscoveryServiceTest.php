@@ -165,4 +165,22 @@ describe('RouteDiscoveryService', function () {
         expect($routes->count())->toBeGreaterThan(0);
         expect($routes->pluck('name')->filter())->toContain('users.index');
     });
+
+    test('captures where() constraints on route parameters', function () {
+        Route::get('/api/users/{id}', function () {})->where('id', '[0-9]+');
+
+        $service = app(RouteDiscoveryService::class);
+        $routes = $service->discover();
+
+        expect($routes->first()->parameters['id'])->toBe('[0-9]+');
+    });
+
+    test('leaves unconstrained parameters as null', function () {
+        Route::get('/api/users/{id}', function () {});
+
+        $service = app(RouteDiscoveryService::class);
+        $routes = $service->discover();
+
+        expect($routes->first()->parameters['id'])->toBeNull();
+    });
 });

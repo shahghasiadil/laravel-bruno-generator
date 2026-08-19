@@ -43,6 +43,11 @@ final readonly class BrunoRequest
         return ! empty($this->queryParams);
     }
 
+    public function hasPathVariables(): bool
+    {
+        return $this->pathVariables !== [];
+    }
+
     public function hasBody(): bool
     {
         return $this->body !== null && $this->body->hasContent();
